@@ -84,7 +84,7 @@ class BidTrackerScraper:
 
                 self.pages_collection.insert_one(page_dict)
             i += 1
-            if i==20:
+            if i==50:
                 break
 
             

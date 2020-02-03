@@ -70,7 +70,7 @@ class BidTrackerScraper:
             print (i, aID, auction_group)
             if not (self.pages_collection.find_one({"_id": aID}, {"AuctionGroup":auction_group})):
                 page_dict = {"_id": aID, "AuctionGroup": auction_group}
-                time.sleep(3)
+                time.sleep(1)
                 r = self._session.get("http://www.bidtracker.info/Auction?site=quibids&auction_id=" + aID)
                 page_dict ["Auction"] =  r.text
                 if 'class="sold"' not in r.text:
@@ -78,13 +78,13 @@ class BidTrackerScraper:
                 time.sleep(1)
                 r = self._session.get("http://www.bidtracker.info/AuctionTable?site=quibids&auction_id=" + aID)
                 page_dict ["AuctionTable"] = r.text
-                time.sleep(3)
+                time.sleep(1)
                 r = self._session.get("http://www.bidtracker.info/History?site=quibids&auction_id=" + aID)        
                 page_dict ["AuctionHistory"] = r.text
 
                 self.pages_collection.insert_one(page_dict)
             i += 1
-            if i==1:
+            if i==20:
                 break
 
             

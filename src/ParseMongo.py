@@ -42,7 +42,7 @@ def parse_auction_table_page(html):
     auction_dict["auctiontime"] = datetime.strptime(last_update, '%m/%d/%Y %I:%M:%S %p') #last_update
     t = datetime.strptime(run_time, "%H:%M:%S")
     auction_dict["runtime"] = t.hour*3600+t.minute*60+t.second
-    lock_price = html.split('<div id="div_lock_prcnt" style="display: none;">')[1].split("<")[0]  
+    lock_price = html.split('<div id="div_lock_status" style="display: none;">')[1].split("<")[0]  
     if (lock_price):
         lock_price = int(float(lock_price)*100)
     auction_dict["lock_price"] = lock_price

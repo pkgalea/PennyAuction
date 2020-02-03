@@ -1,6 +1,11 @@
 
+Create maxbids as
+  Select auctionid, username, max(bid) as max_bid from bids group by auctionid, username order by auctionid, max(bid)
+
+
 
 Select bids.auctionid, cardvalue, auctiontime, bidvalue, cardtype, limited_allowed, bid, username, is_bidomatic, 
+       bid >= lock_price as is_locked,
 	   bid=MAX(bid) OVER (PARTITION BY bids.auctionid) AS is_winner,
 	   bid=MAX(bid) OVER (PARTITION BY bids.auctionid)-1 AS is_pen,
 	   MAX(bid) OVER (PARTITION BY bids.auctionid) AS eventual_win_price,

@@ -23,10 +23,8 @@ with conn.cursor() as cursor:
             lock_price = d['lock_price']
             if (not lock_price):
                 lock_price = 0
-            sql = "INSERT INTO Auctions (qauctionid, cardvalue, bidvalue, tracking, auctiontime, runtime, limited_allowe
-d, cashvalue, cardtype, lock_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(sql, (d['_id'], d['cardvalue'], (d['cashvalue']-d['cardvalue'])*2.5, d['tracking'], d['auctio
-ntime'], d['runtime'], d['limited_allowed'], d['cashvalue'], d['cardtype'], lock_price))
+            sql = "INSERT INTO Auctions (qauctionid, cardvalue, bidvalue, tracking, auctiontime, runtime, limited_allowed, cashvalue, cardtype, lock_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (d['_id'], d['cardvalue'], (d['cashvalue']-d['cardvalue'])*2.5, d['tracking'], d['auctiontime'], d['runtime'], d['limited_allowed'], d['cashvalue'], d['cardtype'], lock_price))
     conn.commit()
 
 

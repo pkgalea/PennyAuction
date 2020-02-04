@@ -23,8 +23,10 @@ with conn.cursor() as cursor:
             lock_price = d['lock_price']
             if (not lock_price):
                 lock_price = 0
-            sql = "INSERT INTO Auctions (qauctionid, cardvalue, bidvalue, tracking, auctiontime, runtime, limited_allowed, cashvalue, cardtype, lock_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            cursor.execute(sql, (d['_id'], d['cardvalue'], (d['cashvalue']-d['cardvalue'])*2.5, d['tracking'], d['auctiontime'], d['runtime'], d['limited_allowed'], d['cashvalue'], d['cardtype'], lock_price))
+            sql = "INSERT INTO Auctions (qauctionid, cardvalue, bidvalue, tracking, auctiontime, runtime, limited_allowe
+d, cashvalue, cardtype, lock_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(sql, (d['_id'], d['cardvalue'], (d['cashvalue']-d['cardvalue'])*2.5, d['tracking'], d['auctio
+ntime'], d['runtime'], d['limited_allowed'], d['cashvalue'], d['cardtype'], lock_price))
     conn.commit()
 
 
@@ -34,9 +36,10 @@ with conn.cursor() as cursor:
 
     i = 0 
     for b in bids_collection.find({ "auction_id": { "$nin":  already_found_qids}}):
-        sql = "SELECT count(*) from auctions where quactionid = %s"
-        cursor.execute(sql, b['auction_id'])
-        if (cursor.count()!=0):
+        sql = "SELECT count(*) from auctions where qauctionid = " + str(b['auction_id'])
+        cursor.execute(sql)
+	    print ("here", cursor.rowcount)
+	    if (cursor.rowcount!=0):
             sql = "INSERT INTO bids (auctionid, bid, username, is_bidomatic) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql, (b['auction_id'], b['bid'], b['user'], b['is_bidomatic']))
         else:
@@ -47,5 +50,7 @@ with conn.cursor() as cursor:
         
     conn.commit()
     
+    
+conn.close()
     
 conn.close()

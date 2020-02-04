@@ -6,7 +6,7 @@ db = myclient["penny"]
 auction_collection = db["auctions"]
 bids_collection = db["bids"]
 
-conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='')
+conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
 with conn.cursor() as cursor:
  
     sql = "SELECT qauctionid from auctions"
@@ -27,14 +27,20 @@ with conn.cursor() as cursor:
             cursor.execute(sql, (d['_id'], d['cardvalue'], (d['cashvalue']-d['cardvalue'])*2.5, d['tracking'], d['auctiontime'], d['runtime'], d['limited_allowed'], d['cashvalue'], d['cardtype'], lock_price))
     conn.commit()
 
+
     sql = "SELECT distinct auctionid from bids"
     cursor.execute(sql)
     already_found_qids = [x[0] for x in cursor.fetchall()]
 
     i = 0 
     for b in bids_collection.find({ "auction_id": { "$nin":  already_found_qids}}):
-        sql = "INSERT INTO bids (auctionid, bid, username, is_bidomatic) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (b['auction_id'], b['bid'], b['user'], b['is_bidomatic']))
+        sql = "SELECT count(*) from auctions where quactionid = %s"
+        cursor.execute(sql, b['auction_id'])
+        if (cursor.count()!=0):
+            sql = "INSERT INTO bids (auctionid, bid, username, is_bidomatic) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql, (b['auction_id'], b['bid'], b['user'], b['is_bidomatic']))
+        else:
+            print ("ignoring" + b['auction_id'] + " not fully tracking")
         if (i % 1000 == 0):
             print (i)
         i += 1

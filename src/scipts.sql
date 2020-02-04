@@ -32,6 +32,9 @@ CREATE INDEX bidomatic_idx ON public.bids USING btree (is_bidomatic);
 CREATE INDEX username_idx ON public.bids USING btree (username);
 
 
+delete from bids where auctionid in (select distinct auctionid from bids where auctionid not in (SELECT qauctionid from auctions));
+
+
 with bozo as
 (
 Select bids.auctionid, cardvalue, auctiontime, bidvalue, cardtype, limited_allowed, bid, username, is_bidomatic, 

@@ -21,7 +21,7 @@ with conn.cursor() as cursor:
         if (i % 100 == 0):
             print (i)
         i += 1
-        if d["tracking"] == 100.00 or d['auctiontime'] < datetime.datetime(2019, 9, 19):
+        if d["tracking"] == 100.00 and d['auctiontime'] >= datetime.datetime(2019, 9, 19):
             lock_price = d['lock_price']
             if (not lock_price):
                 lock_price = 0

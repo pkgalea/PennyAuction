@@ -1,4 +1,5 @@
 import pymongo
+import datetime
 import psycopg2 as pg2
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")

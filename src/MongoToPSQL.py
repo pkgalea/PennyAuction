@@ -15,19 +15,23 @@ with conn.cursor() as cursor:
 
     print ("auctions:")
     i = 0
+    exclude_qauctionids = []
     for d in auction_collection.find({ "_id": { "$nin":  already_found_qids}}):
         if (i % 100 == 0):
             print (i)
         i += 1
-        if d["tracking"] == 100.00:
+        if d["tracking"] == 100.00 or d['auctiontime'] < datetime.datetime(2019, 9, 19):
             lock_price = d['lock_price']
             if (not lock_price):
                 lock_price = 0
             sql = "INSERT INTO Auctions (qauctionid, cardvalue, bidvalue, tracking, auctiontime, runtime, limited_allowed, cashvalue, cardtype, lock_price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             cursor.execute(sql, (d['_id'], d['cardvalue'], (d['cashvalue']-d['cardvalue'])*2.5, d['tracking'], d['auctiontime'], d['runtime'], d['limited_allowed'], d['cashvalue'], d['cardtype'], lock_price))
+        else:
+            exclude_qauctionids.append[d['_id']]
+
     conn.commit()
 
-
+    print (exclude_qauctionids)
     sql = "SELECT distinct auctionid from bids"
     cursor.execute(sql)
     already_found_qids = [x[0] for x in cursor.fetchall()]

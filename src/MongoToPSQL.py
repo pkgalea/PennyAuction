@@ -32,10 +32,10 @@ with conn.cursor() as cursor:
 
     conn.commit()
 
-    print (exclude_qauctionids)
+    #print (exclude_qauctionids)
     sql = "SELECT distinct auctionid from bids"
     cursor.execute(sql)
-    already_found_qids = [x[0] for x in cursor.fetchall()]
+    already_found_qids = [x[0] for x in cursor.fetchall()] + exclude_qauctionids
 
     i = 0 
     for b in bids_collection.find({ "auction_id": { "$nin":  already_found_qids}}):

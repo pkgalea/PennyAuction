@@ -36,8 +36,8 @@ with conn.cursor() as cursor:
     for b in bids_collection.find({ "auction_id": { "$nin":  already_found_qids}}):
         sql = "SELECT count(*) from auctions where qauctionid = " + str(b['auction_id'])
         cursor.execute(sql)
-	    print ("here", cursor.rowcount)
-	    if (cursor.rowcount!=0):
+        print("Here", cursor.rowcount)
+        if (cursor.rowcount!=0):
             sql = "INSERT INTO bids (auctionid, bid, username, is_bidomatic) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql, (b['auction_id'], b['bid'], b['user'], b['is_bidomatic']))
         else:

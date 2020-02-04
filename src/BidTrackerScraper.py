@@ -3,6 +3,7 @@ import time
 from bs4 import BeautifulSoup
 import pymongo
 from backports import configparser
+import sys
 
 class BidTrackerScraper:
     
@@ -63,7 +64,7 @@ class BidTrackerScraper:
         time.sleep(4)
         return auction_ids
     
-    def _scrape_auction_group(self, auction_group):
+    def _scrape_auction_group(self, auction_group, break_after):
         i = 0
         auction_ids = self._get_all_auction_ids_for_group(auction_group)
         for aID in auction_ids:
@@ -84,18 +85,23 @@ class BidTrackerScraper:
 
                 self.pages_collection.insert_one(page_dict)
             i += 1
-            if i==50:
+            if i==break_after:
                 break
 
             
-    def scrape(self):
+    def scrape(self, break_after):
         self._connect_to_mongodb()
         self._read_config()
         with requests.Session() as self._session:
             self._login()
             for auction_group in self._auction_pages.keys():
-                self._scrape_auction_group(auction_group)
+                self._scrape_auction_group(auction_group, break_after)
             
 
+if len(sys.argv) != 2:
+    print ("Usage: BidTrackerScraper.py [#break_after]")
+    sys.exit()
+
+break_after = int(sys.argv[1])
 bts = BidTrackerScraper()
-bts.scrape()
+bts.scrape(break_after)

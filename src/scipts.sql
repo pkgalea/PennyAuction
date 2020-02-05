@@ -33,12 +33,16 @@ CREATE INDEX username_idx ON public.bids USING btree (username);
 
 
 delete from bids where auctionid in (select distinct auctionid from bids where auctionid not in (SELECT qauctionid from auctions));
+delete from bids where auctionid in (select distinct qauctionid from auctions where auctiontime <= '2019-09-19');
+delete from auctions where qauctionid in (select distinct qauctionid from auctions where auctiontime <= '2019-09-19');
+
+
 
 drop table steve;
-create table steve as
+create table auction_view as
 with bozo as
 (
-Select bids.auctionid, cardvalue, auctiontime, bidvalue, cardtype, limited_allowed, bid, username, is_bidomatic, 
+Select bids.auctionid, cashvalue, cardvalue, auctiontime, bidvalue, cardtype, limited_allowed, bid, username, is_bidomatic, 
        (lock_price != 0 and bid >= lock_price) as is_locked,
 	   MAX(bid) OVER (PARTITION BY bids.auctionid) AS eventual_win_price,
            Sum(1) OVER (PARTITION by bids.auctionid, username ORDER BY bid) as bids_so_far,
@@ -58,3 +62,27 @@ Select bids.auctionid, cardvalue, auctiontime, bidvalue, cardtype, limited_allow
  bid=eventual_bids and bid != eventual_win_price as giveup,
  (CASE when is_bidomatic THEN bids_of_this_type ELSE bids_so_far-bids_of_this_type END) as bom_bids_so_far
   from bozo order by auctionid, bid;
+
+  CREATE INDEX av_username_idx ON auction_view USING btree (username);
+  CREATE INDEX av_auctionid_idx ON auction_view USING btree (auctionid);
+  CREATE INDEX av_bid_idx ON auction_view USING btree (bid);
+
+
+
+
+
+drop table ministeve_pivot;
+
+CREATE table ministeve_pivot as
+Select n.auctionid, n.bid, max(p.bid) as max_bid, p.username from ministeve n inner join ministeve p 
+on n.auctionid = p.auctionid and p.bid < n.bid and n.username <> p.username
+group by p.username, n.auctionid, n.bid
+order by n.bid;
+
+
+Select m.auctionid, m.cashvalue, m.cardvalue, m.auctiontime, m.bidvalue, m.cardtype, m.limited_allowed, m.bid, m.username, m.is_locked,
+m.bid - piv.max_bid as distance, piv.username
+from ministeve m left join ministeve_pivot piv on m.auctionid = piv.auctionid and m.bid = piv.bid;
+
+
+

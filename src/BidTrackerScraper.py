@@ -97,11 +97,11 @@ class BidTrackerScraper:
                 self._scrape_auction_group(auction_group, break_after)
             
 
+if __name__ == "__main__": 
 if len(sys.argv) != 2:
     print ("Usage: BidTrackerScraper.py [#break_after]")
     sys.exit()
-
-if __name__ == "__main__": 
+    
     break_after = int(sys.argv[1])
     bts = BidTrackerScraper()
     bts.scrape(break_after)

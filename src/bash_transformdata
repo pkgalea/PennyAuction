@@ -1,0 +1,6 @@
+#!/bin/bash
+for i in {0..99}
+do
+   echo "run $i"
+   psql -d penny -f TransformData.sql -v mod_num=$i
+done

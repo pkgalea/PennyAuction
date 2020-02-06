@@ -22,7 +22,7 @@ Select bids.auctionid, cashvalue, cardvalue, auctiontime, bidvalue, cardtype, li
  sum(debut) over (partition by auctionid order by bid)-1 as prevusers,
  bid=eventual_win_price as is_winner,
  bid=eventual_win_price -1 as is_pen,
- bid=eventual_bids and bid != eventual_win_price as giveup,
+ bids_so_far=eventual_bids and bid != eventual_win_price as giveup,
  (CASE when is_bidomatic THEN bids_of_this_type ELSE bids_so_far-bids_of_this_type END) as bom_bids_so_far
   from bozo order by auctionid, bid;
 

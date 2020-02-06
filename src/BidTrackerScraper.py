@@ -28,13 +28,7 @@ class BidTrackerScraper:
         self._auction_pages = dict(config['auction-pages'])        
 
     def _login(self):
-        payload = {} 
-     #   headers = {
-     #       'User-Agent': 'MMozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36',
-     #       'Accept-Encoding': 'gzip, deflate',
-     #       'Accept-Language': 'en-US,en;q=0.9'
-     #   }     
-    
+        payload = {}     
         r = self._session.get("https://www.bidtracker.info/Account/Login" )
         print (r.status_code)
         soup = BeautifulSoup(r.text, 'html.parser')
@@ -64,26 +58,31 @@ class BidTrackerScraper:
         time.sleep(4)
         return auction_ids
     
+    def _scrape_auction(self, aID, auction_group):
+        page_dict = {"_id": aID, "AuctionGroup": auction_group}
+        time.sleep(1)
+        r = self._session.get("http://www.bidtracker.info/Auction?site=quibids&auction_id=" + aID)
+        page_dict ["Auction"] =  r.text
+        if 'class="sold"' not in r.text:
+            return None
+        time.sleep(1)
+        r = self._session.get("http://www.bidtracker.info/AuctionTable?site=quibids&auction_id=" + aID)
+        page_dict ["AuctionTable"] = r.text
+        time.sleep(1)
+        r = self._session.get("http://www.bidtracker.info/History?site=quibids&auction_id=" + aID)        
+        page_dict ["AuctionHistory"] = r.text
+        return page_dict
+
+
     def _scrape_auction_group(self, auction_group, break_after):
         i = 0
         auction_ids = self._get_all_auction_ids_for_group(auction_group)
         for aID in auction_ids:
             print (i, aID, auction_group)
             if not (self.pages_collection.find_one({"_id": aID}, {"AuctionGroup":auction_group})):
-                page_dict = {"_id": aID, "AuctionGroup": auction_group}
-                time.sleep(1)
-                r = self._session.get("http://www.bidtracker.info/Auction?site=quibids&auction_id=" + aID)
-                page_dict ["Auction"] =  r.text
-                if 'class="sold"' not in r.text:
-                    continue
-                time.sleep(1)
-                r = self._session.get("http://www.bidtracker.info/AuctionTable?site=quibids&auction_id=" + aID)
-                page_dict ["AuctionTable"] = r.text
-                time.sleep(1)
-                r = self._session.get("http://www.bidtracker.info/History?site=quibids&auction_id=" + aID)        
-                page_dict ["AuctionHistory"] = r.text
-
-                self.pages_collection.insert_one(page_dict)
+                page_dict = self._scrape_auction(aID, auction_group)
+                if (not page_dict):
+                    self.pages_collection.insert_one(page_dict)
             i += 1
             if i==break_after:
                 break
@@ -102,6 +101,7 @@ if len(sys.argv) != 2:
     print ("Usage: BidTrackerScraper.py [#break_after]")
     sys.exit()
 
-break_after = int(sys.argv[1])
-bts = BidTrackerScraper()
-bts.scrape(break_after)
+if __name__ == "__main__": 
+    break_after = int(sys.argv[1])
+    bts = BidTrackerScraper()
+    bts.scrape(break_after)

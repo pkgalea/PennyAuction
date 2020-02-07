@@ -27,7 +27,7 @@ class BidTrackerScraper:
         self._password = config['login-info']['password']
         self._auction_pages = dict(config['auction-pages'])        
 
-    def _login(self):
+    def _login(self, sleep_time):
         payload = {}     
         r = self._session.get("https://www.bidtracker.info/Account/Login" )
         print (r.status_code)
@@ -44,11 +44,11 @@ class BidTrackerScraper:
         payload['ctl00$MainContent$Password'] = self._password
         payload['ctl00$MainContent$ctl05'] = "Log+in"
 
-        time.sleep(4)
+        time.sleep(sleep_time)
         post = self._session.post("http://www.bidtracker.info/Account/Login", data=payload)
         print (post.status_code)
 
-        time.sleep(4)
+        time.sleep(sleep_time)
 
     def _get_all_auction_ids_for_group(self, auction_group):
         url = "http://www.bidtracker.info/AllAuctionsByDesc?hash="+self._auction_pages[auction_group]+"&site=quibids"
@@ -58,17 +58,18 @@ class BidTrackerScraper:
         time.sleep(4)
         return auction_ids
     
-    def _scrape_auction(self, aID, auction_group):
+    def _scrape_auction(self, aID, auction_group, sleep_time=1):
         page_dict = {"_id": aID, "AuctionGroup": auction_group}
-        time.sleep(1)
+        time.sleep(sleep_time)
         r = self._session.get("http://www.bidtracker.info/Auction?site=quibids&auction_id=" + aID)
+   
         page_dict ["Auction"] =  r.text
         if 'class="sold"' not in r.text:
             return None
-        time.sleep(1)
+        time.sleep(sleep_time)
         r = self._session.get("http://www.bidtracker.info/AuctionTable?site=quibids&auction_id=" + aID)
         page_dict ["AuctionTable"] = r.text
-        time.sleep(1)
+        time.sleep(sleep_time)
         r = self._session.get("http://www.bidtracker.info/History?site=quibids&auction_id=" + aID)        
         page_dict ["AuctionHistory"] = r.text
         return page_dict
@@ -87,21 +88,26 @@ class BidTrackerScraper:
             if i==break_after:
                 break
 
-            
+    def single_scrape(self,auctionID):
+        self._read_config()
+        with requests.Session() as self._session:
+            self._login(0)
+            return self._scrape_auction(auctionID, "whatever", 0)
+
     def scrape(self, break_after):
         self._connect_to_mongodb()
         self._read_config()
         with requests.Session() as self._session:
-            self._login()
+            self._login(3)
             for auction_group in self._auction_pages.keys():
-                self._scrape_auction_group(auction_group, break_after)
+                return self._scrape_auction_group(auction_group, break_after)
             
 
 if __name__ == "__main__": 
-if len(sys.argv) != 2:
-    print ("Usage: BidTrackerScraper.py [#break_after]")
-    sys.exit()
-    
-    break_after = int(sys.argv[1])
-    bts = BidTrackerScraper()
-    bts.scrape(break_after)
+    if len(sys.argv) != 2:
+        print ("Usage: BidTrackerScraper.py [#break_after]")
+        sys.exit()
+        
+        break_after = int(sys.argv[1])
+        bts = BidTrackerScraper()
+        bts.scrape(break_after)

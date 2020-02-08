@@ -19,7 +19,7 @@ def build_model():
 
     print ("1. Reading from database")
     conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
-    df = pd.read_sql ("""Select * from auction_full LIMIT 2000""", conn)
+    df = pd.read_sql ("""Select * from auction_full""", conn)
 
     print ("2. Transforming data")
     df.is_bidomatic0 = df.is_bidomatic0.astype(str)

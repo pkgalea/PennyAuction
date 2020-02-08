@@ -82,7 +82,7 @@ class BidTrackerScraper:
             print (i, aID, auction_group)
             if not (self.pages_collection.find_one({"_id": aID}, {"AuctionGroup":auction_group})):
                 page_dict = self._scrape_auction(aID, auction_group)
-                if (not page_dict):
+                if (page_dict):
                     self.pages_collection.insert_one(page_dict)
             i += 1
             if i==break_after:

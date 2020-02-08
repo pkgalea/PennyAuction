@@ -90,3 +90,7 @@ class MongoParser:
                 auction_collection.insert_one(auction_dict,{"ordered":"True"})
                 bids_collection.insert_many(bids_list)
 
+
+if __name__ == "__main__": 
+    mp = MongoParser()
+    mp.parse()

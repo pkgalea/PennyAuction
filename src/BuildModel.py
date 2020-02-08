@@ -19,7 +19,7 @@ def build_model():
 
     print ("1. Reading from database")
     conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
-    df = pd.read_sql ("""Select * from auction_full """, conn)
+    df = pd.read_sql ("""Select * from auction_full LIMIT 2000""", conn)
 
     print ("2. Transforming data")
     df.is_bidomatic0 = df.is_bidomatic0.astype(str)
@@ -69,6 +69,6 @@ def build_model():
     model.fit(X_train, y_train)
 
     print ("5. Pickling model as penny_auction.pickle")
-    pickle.dump( model, open( "../pickle/penny_auction.pickle", "wb" ) )
+    pickle.dump( model, open( "pickle/penny_auction.pickle", "wb" ) )
 
     return model, X_test, y_test

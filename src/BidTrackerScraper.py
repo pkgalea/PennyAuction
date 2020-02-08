@@ -108,6 +108,6 @@ if __name__ == "__main__":
         print ("Usage: BidTrackerScraper.py [#break_after]")
         sys.exit()
         
-        break_after = int(sys.argv[1])
-        bts = BidTrackerScraper()
-        bts.scrape(break_after)
+    break_after = int(sys.argv[1])
+    bts = BidTrackerScraper()
+    bts.scrape(break_after)

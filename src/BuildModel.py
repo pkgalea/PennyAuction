@@ -46,7 +46,7 @@ def build_model():
 
     categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
                             'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3', 'is_bom_150_0', 'is_bom_150_1', 'is_bom_150_2', 'is_bom_150_3']
-    numeric_features = ['cashvalue','bidvalue', 'prevusers', 
+    numeric_features = ['bid', 'cashvalue','bidvalue', 'prevusers', 
                         'bids_so_far0', 'perc_to_bin0', 
                         'distance1', 'bids_so_far1',  'perc_to_bin1',
                         'distance2', 'bids_so_far2',  'perc_to_bin2',

@@ -100,7 +100,7 @@ class BidTrackerScraper:
         with requests.Session() as self._session:
             self._login(3)
             for auction_group in self._auction_pages.keys():
-                return self._scrape_auction_group(auction_group, break_after)
+                self._scrape_auction_group(auction_group, break_after)
             
 
 if __name__ == "__main__": 

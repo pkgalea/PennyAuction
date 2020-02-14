@@ -57,12 +57,13 @@ class BidTrackerScraper:
         auction_ids = [s.split('"')[0] for s in split[1:]]
         time.sleep(4)
         return auction_ids
+
+    
     
     def _scrape_auction(self, aID, auction_group, sleep_time=1):
         page_dict = {"_id": aID, "AuctionGroup": auction_group}
         time.sleep(sleep_time)
-        r = self._session.get("http://www.bidtracker.info/Auction?site=quibids&auction_id=" + aID)
-   
+        r = self._session.get("http://www.bidtracker.info/Auction?site=quibids&auction_id=" + aID)  
         page_dict ["Auction"] =  r.text
         if 'class="sold"' not in r.text:
             return None

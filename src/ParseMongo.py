@@ -52,15 +52,17 @@ class MongoParser:
         auction_dict["lock_price"] = lock_price
         
 
-    def parse_history_page(self, qauction_id, html, bids_list):
+    def parse_history_page(self, qauction_id, html):
         soup = BeautifulSoup(html, 'html.parser')
         tds = soup.find_all("td")[3:]
+        bids_list = []
         for i in range(0, len(tds), 4):
             bid = tds[i].text.strip() 
             user = tds[i+2].text.strip() 
             bid_type = tds[i+3].text.strip()   
             is_bidomatic = bid_type=="Bidomatic"
             bids_list.append({"auction_id": int(qauction_id), "bid": int(bid), "user": user, "is_bidomatic": is_bidomatic})
+        return bids_list
 
     def parse(self):
         
@@ -83,10 +85,9 @@ class MongoParser:
                     print(qauction_id, p['AuctionGroup'])
                     prev_auct_group = p['AuctionGroup']
                 auction_dict = {"_id": int(qauction_id)}
-                bids_list = []
                 self.parse_auction_page(qauction_id, p['Auction'], auction_dict)
                 self.parse_auction_table_page(qauction_id, p['AuctionTable'], auction_dict)
-                self.parse_history_page(qauction_id, p['AuctionHistory'], bids_list)
+                bids_list = self.parse_history_page(qauction_id, p['AuctionHistory'])
                 auction_collection.insert_one(auction_dict,{"ordered":"True"})
                 bids_collection.insert_many(bids_list)
 

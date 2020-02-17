@@ -1,13 +1,12 @@
 import pandas as pd
 import psycopg2 as pg2
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import auc, confusion_matrix, precision_score, recall_score, accuracy_score, roc_curve
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as Pipeline_imb
 import numpy as np
 import pickle
@@ -16,6 +15,26 @@ class PennyModel:
 
     def __init__ (self):
         self.model = None
+
+    def get_column_names_from_ColumnTransformer(self, column_transformer):    
+        col_name = []
+        for transformer_in_columns in column_transformer.transformers_[:-1]:#the last transformer is ColumnTransformer's 'remainder'
+            raw_col_name = transformer_in_columns[2]
+            if isinstance(transformer_in_columns[1],Pipeline): 
+                transformer = transformer_in_columns[1].steps[-1][1]
+            else:
+                transformer = transformer_in_columns[1]
+            try:
+                names = transformer.get_feature_names(self.categorical_features)
+            except AttributeError: # if no 'get_feature_names' function, use raw column name
+                names = raw_col_name
+            if isinstance(names,np.ndarray): # eg.
+                col_name += names.tolist()
+            elif isinstance(names,list):
+                col_name += names    
+            elif isinstance(names,str):
+                col_name.append(names)
+        return col_name    
 
     def transform(self, X):
 
@@ -42,7 +61,7 @@ class PennyModel:
 
         self.X = self.transform(X)
 
-        categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
+        self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
                                 'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3', 'is_bom_150_0', 'is_bom_150_1', 'is_bom_150_2', 'is_bom_150_3']
         numeric_features = ['bid', 'cashvalue','bidvalue', 'prevusers', 
                             'bids_so_far0', 'perc_to_bin0', 
@@ -58,10 +77,10 @@ class PennyModel:
         preprocessor = ColumnTransformer(
             transformers=[
                 ('num', numeric_transformer, numeric_features),
-                ('cat', categorical_transformer, categorical_features)])
+                ('cat', categorical_transformer, self.categorical_features)])
         self.model = Pipeline_imb(steps=[('preprocessor', preprocessor),
                                 ('sampler', RandomUnderSampler()),
-                            ('classifier', RandomForestClassifier())])
+                            ('classifier', RandomForestClassifier(n_estimators=200))])
 
         print ("4. Fitting model")
         self.model.fit(self.X, y)
@@ -70,6 +89,15 @@ class PennyModel:
         print ("5. Pickling model as penny_auction.pickle")
         pickle.dump( self, open( filename, "wb" ) )
 
+    def predict_proba_from_json(self, X_json):
+        X = pd.DataFrame.from_dict(X_json)
+        return self.predict_proba(X)
+
+    def predict_proba(self, X):
+        return self.model.predict_proba(self.transform(X))
+
+    def get_feature_scores(self):
+        return pd.Series(self.model.steps[2][1].feature_importances_, index=self.get_column_names_from_ColumnTransformer(self.model.named_steps['preprocessor']))
 
 
 if __name__ == "__main__": 

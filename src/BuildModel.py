@@ -79,7 +79,7 @@ class PennyModel:
                 ('num', numeric_transformer, numeric_features),
                 ('cat', categorical_transformer, self.categorical_features)])
         self.model = Pipeline_imb(steps=[('preprocessor', preprocessor),
-                                ('sampler', RandomUnderSampler()),
+                                ('sampler', RandomUnderSampler(strategy=.1)),
                             ('classifier', RandomForestClassifier(n_estimators=200))])
 
         print ("4. Fitting model")

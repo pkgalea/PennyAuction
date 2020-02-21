@@ -11,7 +11,7 @@ import importlib
 
 
 def print_profit_threshold (y_test, probs, X_test):
-    for thresh in arange(0, 1.1, .05):
+    for thresh in np.arange(0, 1.1, .05):
         y_pred = probs >= thresh
         cm = confusion_matrix(y_test, y_pred)
         print("*****************************")

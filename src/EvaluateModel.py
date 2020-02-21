@@ -41,7 +41,7 @@ df = df.sort_values("auctiontime")
 y = df['is_winner']
 X = df
 X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=False)#, random_state=0) 
-print(X_test.auctiontime[0])
+print(X_test.auctiontime.iloc[0])
 
 
 

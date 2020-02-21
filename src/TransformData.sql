@@ -1,4 +1,5 @@
 
+/*DROP Table auction_full; */
 
 BEGIN;
 
@@ -16,7 +17,7 @@ Select bids.auctionid,
 	   row_number() over (partition by username, is_bidomatic, bids.auctionid order by bid) as prestreak, 
 	   (CASE WHEN row_number() over (partition by bids.auctionid, username order by bid)=1 THEN 1 ELSE 0 END) as debut,
 	   (CASE WHEN cardvalue = 0 THEN 0 WHEN cardvalue < 50 THEN 1 ELSE 1.99 END) as fee
-           from bids  INNER JOIN Auctions on Auctions.qauctionid = bids.auctionID         
+           from bids  INNER JOIN Auctions on Auctions.qauctionid = bids.auctionID      
 
            WHERE bids.auctionID % 100 = :mod_num and bids.AuctionID not in (SELECT DISTINCT AuctionID from auction_full) 
  )
@@ -65,7 +66,7 @@ left join ministeve p on p.auctionid = m.auctionid and p.bid = piv.max_bid;
 
 
 CREATE temp table ministeve_lagged on commit drop as
-select auctionid, is_winner, cardtype, cashvalue, cardvalue, bidvalue, limited_allowed, is_locked, auctiontime, bid, is_bidomatic, bids_so_far, username, prevusers,
+select auctionid, is_winner, cardtype, cashvalue, cardvalue, fee, bidvalue, limited_allowed, is_locked, auctiontime, bid, is_bidomatic, bids_so_far, username, prevusers,
 lag(p_username,0) over (partition by auctionid, bid order by distance DESC) as username0,
 lag(distance,0) over (partition by auctionID, bid order by distance DESC) as distance0,
 lag(p_is_bidomatic, 0) over (partition by auctionID, bid order by distance DESC) as is_bidomatic0,
@@ -107,8 +108,8 @@ lag(p_prev_win_bids, 3) over (partition by auctionID, bid order by distance DESC
 
 FROM ministeve_joined ;
 
-INSERT INTO auction_full
 /*create table auction_full as */
+insert into auction_full 
 Select * from ministeve_lagged where distance0 is null or distance0 = 1;
 
 

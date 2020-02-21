@@ -108,7 +108,7 @@ lag(p_prev_win_bids, 3) over (partition by auctionID, bid order by distance DESC
 
 FROM ministeve_joined ;
 
-/*create table auction_full as */
+/*create table auction_full as  */
 insert into auction_full 
 Select * from ministeve_lagged where distance0 is null or distance0 = 1;
 

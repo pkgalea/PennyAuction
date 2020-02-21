@@ -11,18 +11,21 @@ import importlib
 
 
 def print_profit_threshold (y_test, probs, X_test):
-    for thresh in np.arange(0, 1.1, .05):
+    for thresh in np.arange(0, 1.1, .05): # threshes:
         y_pred = probs >= thresh
         cm = confusion_matrix(y_test, y_pred)
         print("*****************************")
         print("thresh:", thresh)
-        print ("Accuracy {}: Precision: {}  Recall:{} ".format(accuracy_score(y_test, y_pred), precision_score(y_test, y_pred), recall_score(y_test, y_pred)))
+        acc = accuracy_score(y_test, y_pred) * 100
+        prec = precision_score(y_test, y_pred) *100
+        rec = recall_score(y_test, y_pred) *100
+        print (f"Accuracy: {acc:.2f} Precision: {prec:.2f}  Recall:{rec:.2f} ")
         print(cm)
         true_positive_mask = (y_pred==True)&(y_test==True)
         profit = sum(X_test.cashvalue[true_positive_mask])-sum(y_pred)*.40 - sum(X_test.fee[true_positive_mask]) - sum(X_test.bid[true_positive_mask])/100
         profit_per_bid = profit/sum(y_pred)
-        print("profit:", profit)
-        print("profit per bid:", profit_per_bid)
+        print(f"profit: {profit:.2f}")
+        print(f"profit per bid: {profit_per_bid:.2f}")
         print("*****************************")
         print("")
 
@@ -34,9 +37,13 @@ print ("Reading Dataset")
 df = pd.read_sql ("""Select * from auction_full """, conn)
 
 print ("Splitting into Train/Test Sets")
+df = df.sort_values("auctiontime")
 y = df['is_winner']
 X = df
-X_train, X_test, y_train, y_test = train_test_split(X, y)#, random_state=0) 
+X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=False)#, random_state=0) 
+print(X_test.auctiontime[0])
+
+
 
 print ("Fitting Model")
 pm = PennyModel()

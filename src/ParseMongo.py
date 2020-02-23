@@ -3,31 +3,41 @@ from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 
+
+
+def parse_auction_title (auction_title):
+    card_value, auction_title = auction_title.split(" ", 1)
+    has_bids = "Bids" in auction_title
+    has_gift_card = "Gift Card" in auction_title
+    is_vouchers = "Voucher" in auction_title
+    cash_value = auction_title.split("(")[1]
+    cash_value = cash_value.split(")")[0][1:]
+    if has_bids and has_gift_card:
+        card_type, bid_value = auction_title.split (" Gift Card AND", 1)
+        bid_value = bid_value.split(" Bids")[0][1:]
+    elif has_gift_card and not has_bids:
+        card_type = auction_title.split (" Gift Card")[0]
+        bid_value = "0"  
+    elif has_bids and not has_gift_card and is_vouchers:
+        card_type = "None"
+        bid_value = card_value
+        card_value = "$0"
+    else:
+        print("what is this?") 
+        return None, None, None, None
+    return cash_value, card_value, card_type, bid_value
+
+
 class MongoParser:
 
     def __init__(self):
         self.auction_list = []
 
 
+
     def parse_auction_page(self, qauction_id, html, auction_dict):
         auction_title=html.split(qauction_id + " - ")[1]
-        card_value, auction_title = auction_title.split(" ", 1)
-        has_bids = "Bids" in auction_title
-        has_gift_card = "Gift Card" in auction_title
-        cash_value = auction_title.split("(")[1]
-        cash_value = cash_value.split(")")[0][1:]
-        if has_bids and has_gift_card:
-            card_type, bid_value = auction_title.split (" Gift Card AND", 1)
-            bid_value = bid_value.split(" Bids")[0][1:]
-        elif has_gift_card and not has_bids:
-            card_type = auction_title.split (" Gift Card")[0]
-            bid_value = "0"  
-        elif has_bids and not has_gift_card:
-            card_type = "None"
-            bid_value = card_value
-            card_value = "$0"
-        else:
-            print("what is this?")               
+        cash_value, card_value, card_type, bid_value = parse_auction_title(auction_title)      
         limited_allowed = "is NOT LIMITED" not in html
         auction_dict["cashvalue"] = int(cash_value)
         auction_dict["cardvalue"]=int(card_value[1:])

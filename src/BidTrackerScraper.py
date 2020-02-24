@@ -12,7 +12,7 @@ class BidTrackerScraper:
         self._username = None
         self._password = None
         self._auction_pages = None
-        self._session = None
+        self._session = requests.Session()
     
     def _connect_to_mongodb(self):     
         myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -27,7 +27,8 @@ class BidTrackerScraper:
         self._password = config['login-info']['password']
         self._auction_pages = dict(config['auction-pages'])        
 
-    def _login(self, sleep_time):
+    def login(self, sleep_time):
+        self._read_config()
         payload = {}     
         r = self._session.get("https://www.bidtracker.info/Account/Login" )
         print (r.status_code)
@@ -90,19 +91,21 @@ class BidTrackerScraper:
                 break
 
     def single_scrape(self,auctionID):
-        self._read_config()
         with requests.Session() as self._session:
-            self._login(0)
+            self.login(0)
             return self._scrape_auction(auctionID, "whatever", 0)
 
     def scrape(self, break_after):
         self._connect_to_mongodb()
-        self._read_config()
         with requests.Session() as self._session:
-            self._login(3)
+            self.login(3)
             for auction_group in self._auction_pages.keys():
                 self._scrape_auction_group(auction_group, break_after)
             
+    def scrape_upcoming_auctions(self):
+        r = self._session.get("http://www.bidtracker.info/AllAuctionsTable?site=quibids&future=true")
+        return r.text
+ 
 
 if __name__ == "__main__": 
     if len(sys.argv) != 2:

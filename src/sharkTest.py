@@ -1,8 +1,13 @@
 import pyshark
 import json
+import pymongo
 
 
 def capture_auction ():
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = myclient["penny"]
+    live_collection = db["live"]
+    live_collection.delete_many({})
     capture = pyshark.LiveCapture(interface="wlp1s0") #, bpf_filter="src net 52.203.74.230")
 
     #capture = pyshark.LiveCapture()
@@ -27,7 +32,9 @@ def capture_auction ():
                                 if (auction):
                                     auction_id = list(auction.keys())[0]
                                     auction = auction[auction_id]
+                                    
                                     if ('bh' in auction.keys()):
+
                                         if ('s' in auction.keys()):
                                             print ("We're done")
                                             return
@@ -39,6 +46,8 @@ def capture_auction ():
                                             is_bidomatic = bh['t']==2
                                             print("*****************")
                                             print(auction_id, bid, username, is_bidomatic)
+                                            auction_dict = {"auction_id":auction_id, "bid": bid, "username":username, "is_bidomatic":is_bidomatic}
+                                            live_collection.insert_one(auction_dict)    
                                             print("*****************")
                                     else:
                                         print(auction)

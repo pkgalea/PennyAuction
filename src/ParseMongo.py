@@ -5,39 +5,70 @@ from datetime import datetime
 
 
 
-def parse_auction_title (auction_title):
-    card_value, auction_title = auction_title.split(" ", 1)
-    has_bids = "Bids" in auction_title
-    has_gift_card = "Gift Card" in auction_title
-    is_vouchers = "Voucher" in auction_title
-    cash_value = auction_title.split("(")[1]
-    cash_value = cash_value.split(")")[0][1:]
-    if has_bids and has_gift_card:
-        card_type, bid_value = auction_title.split (" Gift Card AND", 1)
-        bid_value = bid_value.split(" Bids")[0][1:]
-    elif has_gift_card and not has_bids:
-        card_type = auction_title.split (" Gift Card")[0]
-        bid_value = "0"  
-    elif has_bids and not has_gift_card and is_vouchers:
-        card_type = "None"
-        bid_value = card_value
-        card_value = "$0"
-    else:
-        print("what is this?") 
-        return None, None, None, None
-    return cash_value, card_value, card_type, bid_value
-
 
 class MongoParser:
 
     def __init__(self):
         self.auction_list = []
 
+    
+    def parse_auction_title (self, auction_title):
+        card_value, auction_title = auction_title.split(" ", 1)
+        has_bids = "Bids" in auction_title
+        has_gift_card = "Gift Card" in auction_title
+        is_vouchers = "Voucher" in auction_title
+        cash_value = auction_title.split("(")[1]
+        cash_value = cash_value.split(")")[0][1:]
+        if has_bids and has_gift_card:
+            card_type, bid_value = auction_title.split (" Gift Card AND", 1)
+            bid_value = bid_value.split(" Bids")[0][1:]
+        elif has_gift_card and not has_bids:
+            card_type = auction_title.split (" Gift Card")[0]
+            bid_value = "0"  
+        elif has_bids and not has_gift_card and is_vouchers:
+            card_type = "None"
+            bid_value = card_value
+            card_value = "$0"
+        else:
+            print("what is this?") 
+            return None, None, None, None
+        return cash_value, card_value, card_type, bid_value
 
+
+    def parse_upcoming_auction_page(self, html):
+        soup = BeautifulSoup(html, 'html.parser')
+        upcoming_auctions = []
+        for tr in soup.find_all("tr", {"class": "tr-inner"}):
+            tds = tr.find_all("td")
+            auction_id = tds[1].find("a").text
+            description = tds[2].text
+            limited_allowed = description[0].startswith('L')
+            if (limited_allowed):
+                description=description[1:]
+            cash_value, card_value, card_type, bid_value = self.parse_auction_title(description)
+            if (cash_value):
+                time_str = tds[3].text
+                if time_str.startswith("00"):
+                    t = time.strptime(tds[3].text, "%H:%M:%S")
+                    print(t.tm_min*60+t.tm_sec)
+                else:
+                    break
+
+                auction_dict = {
+                    "auction_id": auction_id,
+                    "cash_value": int(float(cash_value)),
+                    "card_value": int(card_value[1:]),
+                    "card_type": card_type,
+                    "bid_value": int(bid_value),
+                    "limited_allowed": limited_allowed,
+                    "seconds_left": t.tm_min*60+t.tm_sec
+                }
+                upcoming_auctions.append(auction_dict)  
+        return upcoming_auctions        
 
     def parse_auction_page(self, qauction_id, html, auction_dict):
         auction_title=html.split(qauction_id + " - ")[1]
-        cash_value, card_value, card_type, bid_value = parse_auction_title(auction_title)      
+        cash_value, card_value, card_type, bid_value = self.parse_auction_title(auction_title)      
         limited_allowed = "is NOT LIMITED" not in html
         auction_dict["cashvalue"] = int(cash_value)
         auction_dict["cardvalue"]=int(card_value[1:])

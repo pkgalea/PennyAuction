@@ -5,7 +5,7 @@ delete from auctions where auctionid in (select auctionid from auctions where ca
 BEGIN;
 
 
-create temp table bid_transform on commit drop as
+create temp table bid_transform_temp on commit drop as
 with bozo as
 (
 Select bids.auctionid, 
@@ -21,7 +21,7 @@ Select bids.auctionid,
 	   (CASE WHEN cardvalue = 0 THEN 0 WHEN cardvalue < 50 THEN 1 ELSE 1.99 END) as fee
            from bids  INNER JOIN Auctions on Auctions.qauctionid = bids.auctionID      
 
-           WHERE  auctiontime < '2019-12-20' /*   bids.AuctionID not in (SELECT DISTINCT AuctionID from bid_transform)   */
+           WHERE auctiontime < '2020-01-31' and bids.AuctionID not in (SELECT DISTINCT AuctionID from bid_transform)  
  )
  select bozo.*, 
  (CASE WHEN is_bidomatic THEN row_number() over (partition by prestreak, auctionid, username order by bid) ELSE 0 END) as bom_streak,
@@ -36,19 +36,19 @@ Select bids.auctionid,
 from bozo order by auctionid, bid;
 
  
-CREATE INDEX av_username_idx ON bid_transform USING btree (username);
-CREATE INDEX av_auctionid_idx ON bid_transform USING btree (auctionid);
-CREATE INDEX av_bid_idx ON bid_transform USING btree (bid);
+CREATE INDEX av_username_idx ON bid_transform_temp USING btree (username);
+CREATE INDEX av_auctionid_idx ON bid_transform_temp USING btree (auctionid);
+CREATE INDEX av_bid_idx ON bid_transform_temp USING btree (bid);
 
-
+insert into bid_transform select * from bid_transform_temp;
 
 create temp table prev_auction_data on commit drop as
 with bozo as 
 (
 Select  count(*) as bids, sum(is_bidomatic::int) as bidomatic_bids, min(bid) as entry, auctiontime, auctionid, username, sum(is_winner::int) as wins, 
-max(CASE WHEN giveup and bids_so_far = 1 THEN 1 ELSE 0 END) as giveup_at_one,
-max(CASE WHEN giveup and bids_so_far <=5 THEN 1 ELSE 0 END) as giveup_before_six,
-max(CASE WHEN perc_to_bin >=1 THEN 1 ELSE 0 END) as overbid
+max(CASE WHEN giveup and bids_so_far = 1 THEN 1.0 ELSE 0 END) as giveup_at_one,
+max(CASE WHEN giveup and bids_so_far <=5 THEN 1.0 ELSE 0 END) as giveup_before_six,
+max(CASE WHEN perc_to_bin >=1 THEN 1.0 ELSE 0 END) as overbid
 from bid_transform  group by auctionid, username, auctiontime order by auctiontime
 )
 select auctiontime, username, auctionid, 
@@ -73,7 +73,7 @@ prev_giveup_before_six_count/prev_auction_count as prev_giveup_before_six,
 prev_wins_count/prev_auction_count as prev_wins,
 prev_bid_count/prev_auction_count as prev_bids,
 prev_bom_bid_count/prev_auction_count as prev_bom_bids
-from bid_transform a inner join prev_auction_data p on a.auctionid = p.auctionid and a.username = p.username;
+from bid_transform_temp a inner join prev_auction_data p on a.auctionid = p.auctionid and a.username = p.username;
 
 CREATE INDEX au_username_idx ON auction_unified USING btree (username);
 CREATE INDEX au_auctionid_idx ON auction_unified USING btree (auctionid);
@@ -97,6 +97,7 @@ p.bids_so_far as p_bids_so_far,
 p.bom_bids_so_far as p_bom_bids_so_far, 
 p.bom_streak as p_bom_streak,
 p.perc_to_bin as p_perc_to_bin,
+p.prev_auction_count as p_prev_auction_count,
 p.prev_overbid as p_prev_overbid,
 p.prev_giveup_one as p_prev_giveup_one,
 p.prev_giveup_before_six as p_prev_giveup_before_six,
@@ -121,6 +122,7 @@ lag(p_bids_so_far, 0) over (partition by auctionID, bid order by distance DESC) 
 lag(p_bom_bids_so_far, 0) over (partition by auctionID, bid order by distance DESC) as bom_bids_so_far0,
 lag(p_bom_streak, 0) over (partition by auctionID, bid order by distance DESC) as bom_streak0,
 lag(p_perc_to_bin, 0) over (partition by auctionID, bid order by distance DESC) as perc_to_bin0,
+lag(p_prev_auction_count, 0) over (partition by auctionID, bid order by distance DESC) as p_prev_auction_count0,
 lag(p_prev_overbid, 0) over (partition by auctionID, bid order by distance DESC) as prev_overbid0,
 lag(p_prev_giveup_one, 0) over (partition by auctionID, bid order by distance DESC) as prev_giveup_one0,
 lag(p_prev_giveup_before_six, 0) over (partition by auctionID, bid order by distance DESC) as prev_give_before_six0,
@@ -135,6 +137,7 @@ lag(p_bids_so_far, 1) over (partition by auctionID, bid order by distance DESC) 
 lag(p_bom_bids_so_far, 1) over (partition by auctionID, bid order by distance DESC) as bom_bids_so_far1,
 lag(p_bom_streak, 1) over (partition by auctionID, bid order by distance DESC) as bom_streak1,
 lag(p_perc_to_bin, 1) over (partition by auctionID, bid order by distance DESC) as perc_to_bin1,
+lag(p_prev_auction_count, 1) over (partition by auctionID, bid order by distance DESC) as p_prev_auction_count1,
 lag(p_prev_overbid, 1) over (partition by auctionID, bid order by distance DESC) as prev_overbid1,
 lag(p_prev_giveup_one, 1) over (partition by auctionID, bid order by distance DESC) as prev_giveup_one1,
 lag(p_prev_giveup_before_six, 1) over (partition by auctionID, bid order by distance DESC) as prev_give_before_six1,
@@ -150,6 +153,7 @@ lag(p_bids_so_far, 2) over (partition by auctionID, bid order by distance DESC) 
 lag(p_bom_bids_so_far, 2) over (partition by auctionID, bid order by distance DESC) as bom_bids_so_far2,
 lag(p_bom_streak, 2) over (partition by auctionID, bid order by distance DESC) as bom_streak2,
 lag(p_perc_to_bin, 2) over (partition by auctionID, bid order by distance DESC) as perc_to_bin2,
+lag(p_prev_auction_count, 2) over (partition by auctionID, bid order by distance DESC) as p_prev_auction_count2,
 lag(p_prev_overbid, 2) over (partition by auctionID, bid order by distance DESC) as prev_overbid2,
 lag(p_prev_giveup_one, 2) over (partition by auctionID, bid order by distance DESC) as prev_giveup_one2,
 lag(p_prev_giveup_before_six, 2) over (partition by auctionID, bid order by distance DESC) as prev_give_before_six2,
@@ -165,6 +169,7 @@ lag(p_bids_so_far, 3) over (partition by auctionID, bid order by distance DESC) 
 lag(p_bom_bids_so_far, 3) over (partition by auctionID, bid order by distance DESC) as bom_bids_so_far3,
 lag(p_bom_streak, 3) over (partition by auctionID, bid order by distance DESC) as bom_streak3,
 lag(p_perc_to_bin, 3) over (partition by auctionID, bid order by distance DESC) as perc_to_bin3,
+lag(p_prev_auction_count, 3) over (partition by auctionID, bid order by distance DESC) as p_prev_auction_count3,
 lag(p_prev_overbid, 3) over (partition by auctionID, bid order by distance DESC) as prev_overbid3,
 lag(p_prev_giveup_one, 3) over (partition by auctionID, bid order by distance DESC) as prev_giveup_one3,
 lag(p_prev_giveup_before_six, 3) over (partition by auctionID, bid order by distance DESC) as prev_give_before_six3,
@@ -175,8 +180,14 @@ lag(p_prev_bom_bids, 3) over (partition by auctionID, bid order by distance DESC
 FROM full_joined ;
 
 
-create table auction_lagged as 
-Select * from ministeve_lagged where distance0 is null or distance0 = 1;
+/*create table auction_full as */
+insert into auction_full
+Select * from auction_lagged where distance0 is null or distance0 = 1;
 
 
 END;
+
+
+
+
+

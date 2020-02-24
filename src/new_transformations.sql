@@ -1,6 +1,6 @@
-﻿delete from bids where auctionid in (select qauctionid from auctions where cardvalue = 50 and bidvalue=0);
+﻿/*delete from bids where auctionid in (select qauctionid from auctions where cardvalue = 50 and bidvalue=0);
 delete from auctions where auctionid in (select auctionid from auctions where cardvalue = 50 and bidvalue=0);
-
+*/
 
 BEGIN;
 
@@ -21,7 +21,7 @@ Select bids.auctionid,
 	   (CASE WHEN cardvalue = 0 THEN 0 WHEN cardvalue < 50 THEN 1 ELSE 1.99 END) as fee
            from bids  INNER JOIN Auctions on Auctions.qauctionid = bids.auctionID      
 
-           WHERE auctiontime < '2020-01-31' and bids.AuctionID not in (SELECT DISTINCT AuctionID from bid_transform)  
+           WHERE auctiontime < :auction_date and bids.AuctionID not in (SELECT DISTINCT AuctionID from bid_transform)  
  )
  select bozo.*, 
  (CASE WHEN is_bidomatic THEN row_number() over (partition by prestreak, auctionid, username order by bid) ELSE 0 END) as bom_streak,
@@ -186,8 +186,5 @@ Select * from auction_lagged where distance0 is null or distance0 = 1;
 
 
 END;
-
-
-
 
 

@@ -21,7 +21,7 @@ Select bids.auctionid,
 	   (CASE WHEN cardvalue = 0 THEN 0 WHEN cardvalue < 50 THEN 1 ELSE 1.99 END) as fee
            from bids  INNER JOIN Auctions on Auctions.qauctionid = bids.auctionID      
 
-           WHERE auctiontime < :auction_date and bids.AuctionID not in (SELECT DISTINCT AuctionID from bid_transform) 
+           WHERE auctiontime < :auction_date and bids.AuctionID not in (SELECT DISTINCT AuctionID from bid_transform)
  )
  select bozo.*, 
  (CASE WHEN is_bidomatic THEN row_number() over (partition by prestreak, auctionid, username order by bid) ELSE 0 END) as bom_streak,
@@ -41,7 +41,8 @@ CREATE INDEX av_auctionid_idx ON bid_transform_temp USING btree (auctionid);
 CREATE INDEX av_bid_idx ON bid_transform_temp USING btree (bid);
 
 /*create table bid_transform as */
-insert into bid_transform select * from bid_transform_temp;
+insert into bid_transform 
+select * from bid_transform_temp;
 
 create temp table prev_auction_data on commit drop as
 with bozo as 
@@ -187,8 +188,8 @@ lag(p_prev_bom_bids, 3) over (partition by auctionID, bid order by distance DESC
 FROM full_joined ;
 
 
-/*create table auction_full as*/
-insert into auction_full 
+/*create table auction_full as */
+insert into auction_full  
 Select * from auction_lagged where distance0 is null or distance0 = 1;
 
 

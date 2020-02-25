@@ -1,5 +1,5 @@
 
-/*DROP Table auction_full; */
+/*DROP Table auction_full;*/
 
 BEGIN;
 
@@ -19,20 +19,19 @@ Select bids.auctionid,
 	   (CASE WHEN cardvalue = 0 THEN 0 WHEN cardvalue < 50 THEN 1 ELSE 1.99 END) as fee
            from bids  INNER JOIN Auctions on Auctions.qauctionid = bids.auctionID      
 
-           WHERE bids.auctionID % 100 = :mod_num and bids.AuctionID not in (SELECT DISTINCT AuctionID from auction_full) 
+           WHERE bids.auctionID % 100 = :mod_num and bids.AuctionID not in (SELECT DISTINCT AuctionID from auction_full)
  )
  select bozo.*, 
  (CASE WHEN is_bidomatic THEN row_number() over (partition by prestreak, auctionid, username order by bid) ELSE 0 END) as bom_streak,
  sum(debut) over (partition by auctionid order by bid)-1 as prevusers,
  bid=eventual_win_price as is_winner,
  bid=eventual_win_price -1 as is_pen,
- bid=eventual_bids and bid != eventual_win_price as giveup,
+ bids_so_far=eventual_bids and bid != eventual_win_price as giveup,
  (CASE when is_bidomatic THEN bids_of_this_type ELSE bids_so_far-bids_of_this_type END) as bom_bids_so_far,
  (CASE WHEN LAG(bid=eventual_win_price, bids_so_far::int) OVER (PARTITION by username order by auctiontime, bid) THEN 
  LAG(bidvalue, bids_so_far::int) OVER (PARTITION by username order by auctiontime, bid) ELSE 0 END) as prev_win_bids,
  bids_so_far/(cashvalue*2.5) as perc_to_bin
-
-  from bozo order by auctionid, bid;
+from bozo order by auctionid, bid;
 
  
   CREATE INDEX av_username_idx ON ministeve USING btree (username);
@@ -52,7 +51,7 @@ order by n.bid;
 CREATE temp table ministeve_joined  on commit drop as
 Select m.is_winner, m.auctionid, m.cardtype, m.cashvalue, m.cardvalue, m.auctiontime, m.bidvalue, m.limited_allowed, m.bid,
  m.username, m.is_locked, m.is_bidomatic, m.bids_so_far,  m.prevusers,
-m.fee,
+m.fee, m.giveup, m.eventual_bids, m.eventual_win_price, m.debut, m.bom_streak, m.bom_bids_so_far, m.perc_to_bin,
 m.bid - piv.max_bid as distance, 
 piv.username as p_username,
 p.is_bidomatic as p_is_bidomatic,
@@ -66,7 +65,9 @@ left join ministeve p on p.auctionid = m.auctionid and p.bid = piv.max_bid;
 
 
 CREATE temp table ministeve_lagged on commit drop as
-select auctionid, is_winner, cardtype, cashvalue, cardvalue, fee, bidvalue, limited_allowed, is_locked, auctiontime, bid, is_bidomatic, bids_so_far, username, prevusers,
+select auctionid, is_winner, cardtype, cashvalue, cardvalue, fee, bidvalue, limited_allowed, is_locked, auctiontime, bid, is_bidomatic, bids_so_far,
+ username, prevusers,
+ giveup, eventual_bids, eventual_win_price, debut, bom_streak, bom_bids_so_far, perc_to_bin,
 lag(p_username,0) over (partition by auctionid, bid order by distance DESC) as username0,
 lag(distance,0) over (partition by auctionID, bid order by distance DESC) as distance0,
 lag(p_is_bidomatic, 0) over (partition by auctionID, bid order by distance DESC) as is_bidomatic0,
@@ -108,7 +109,7 @@ lag(p_prev_win_bids, 3) over (partition by auctionID, bid order by distance DESC
 
 FROM ministeve_joined ;
 
-/*create table auction_full as  */
+/*create table auction_full as */
 insert into auction_full 
 Select * from ministeve_lagged where distance0 is null or distance0 = 1;
 

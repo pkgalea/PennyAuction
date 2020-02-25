@@ -1,11 +1,13 @@
 import pymongo
 import datetime
 import psycopg2 as pg2
+import sys
 
 class MongoToPSQL:
 
-    def __init__(self):
+    def __init__(self, password):
         self.db = None
+        self.password = password
 
     def migrate_auctions(self, cursor):
         auction_collection = self.db["auctions"]
@@ -58,7 +60,7 @@ class MongoToPSQL:
     def migrate_to_sql(self):
         self.connect_to_mongo()
 
-        conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='')
+        conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password=self.password)
         with conn.cursor() as cursor:
         
             exclude_qauctionids = self.migrate_auctions(cursor)
@@ -70,5 +72,12 @@ class MongoToPSQL:
         conn.close()
 
 if __name__ == "__main__": 
-    mts = MongoToPSQL()
+    if len(sys.argv) != 2:
+        print ("Usage: MongoToPSQL.py [#usepassword]")
+        sys.exit()
+    if sys.argv[1] == "None":
+        password = ''
+    elif sys.argv[1] == "password":
+        password = 'password'
+    mts = MongoToPSQL(password)
     mts.migrate_to_sql()

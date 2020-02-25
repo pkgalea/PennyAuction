@@ -31,16 +31,20 @@ def print_profit_threshold (y_test, probs, X_test):
 
 
 print ("Connecting to SQL")
-conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
+conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='')
 
 print ("Reading Dataset")
-df = pd.read_sql ("""Select * from auction_full """, conn)
+df = pd.read_sql ("""Select * from auction_full where auctiontime > '2020-01-17' order by auctiontime""", conn)
 
 print ("Splitting into Train/Test Sets")
 df = df.sort_values("auctiontime")
 y = df['is_winner']
 X = df
-X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=False)#, random_state=0) 
+X_train = X[X.auctiontime <= '2020-02-17']
+y_train = y[X.auctiontime <= '2020-02-17']
+X_test = X[X.auctiontime > '2020-02-17']
+y_test = y[X.auctiontime > '2020-02-17']
+#X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=False)#, random_state=0) 
 print(X_test.auctiontime.iloc[0])
 
 

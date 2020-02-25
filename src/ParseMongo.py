@@ -17,6 +17,7 @@ class MongoParser:
         has_bids = "Bids" in auction_title
         has_gift_card = "Gift Card" in auction_title
         is_vouchers = "Voucher" in auction_title
+        is_limit_buster = "Buster" in auction_title
         cash_value = auction_title.split("(")[1]
         cash_value = cash_value.split(")")[0][1:]
         if has_bids and has_gift_card:
@@ -29,6 +30,20 @@ class MongoParser:
             card_type = "None"
             bid_value = card_value
             card_value = "$0"
+        elif is_limit_buster:
+            card_type = "Buster"
+            if "Two" in auction_title:
+                card_value = 30
+            elif "One" in auction_title:
+                card_value = 15
+            else:
+                print("What is this?")
+                return None, None, None, None
+            bid_value = str(int((int(cash_value) - card_value)*2.5))
+            card_value = str(card_value)
+            return cash_value, card_value, card_type, bid_value
+
+
         else:
             print("what is this?") 
             return None, None, None, None

@@ -44,17 +44,11 @@ class PennyModel:
         rX.is_bidomatic1 = rX.is_bidomatic1.astype(str)
         rX.is_bidomatic2 = rX.is_bidomatic2.astype(str)
         rX.is_bidomatic3 = rX.is_bidomatic3.astype(str)
-        rX.prev_win_bids0 = rX.prev_win_bids0.astype(str)
-        rX.prev_win_bids1 = rX.prev_win_bids1.astype(str)
-        rX.prev_win_bids2 = rX.prev_win_bids2.astype(str)
-        rX.prev_win_bids3 = rX.prev_win_bids3.astype(str)
+
         rX["fee"]=[0 if x == 0 else (1 if x < 50 else 1.99) for x in rX["cardvalue"]]
         rX["time_of_day"]=[x.hour*60+x.minute for x in rX["auctiontime"]]
         rX["is_weekend"] = [x.weekday() >=6 for x in rX["auctiontime"]]
-        rX["is_bom_150_0"] = rX['bom_streak0']==150
-        rX["is_bom_150_1"] = rX['bom_streak1']==150
-        rX["is_bom_150_2"] = rX['bom_streak2']==150
-        rX["is_bom_150_3"] = rX['bom_streak3']==150
+
         return rX
 
     def fit(self, X, y):
@@ -62,12 +56,17 @@ class PennyModel:
         self.X = self.transform(X)
 
         self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
-                                'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3', 'is_bom_150_0', 'is_bom_150_1', 'is_bom_150_2', 'is_bom_150_3']
+                                'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3']
         numeric_features = ['bid', 'cashvalue','bidvalue', 'prevusers', 
                             'bids_so_far0', 'perc_to_bin0', 
+                            'p_prev_auction_count0', 'prev_overbid0', 'prev_giveup_one0', 'prev_give_before_six0', 'prev_wins0', 'prev_bids0', 'prev_bom_bids0',
                             'distance1', 'bids_so_far1',  'perc_to_bin1',
+                            'p_prev_auction_count1', 'prev_overbid1', 'prev_giveup_one1', 'prev_give_before_six1', 'prev_wins1', 'prev_bids1', 'prev_bom_bids1',
                             'distance2', 'bids_so_far2',  'perc_to_bin2',
-                            'distance3', 'bids_so_far3', 'perc_to_bin3', 'is_weekend', 'time_of_day']
+                            'p_prev_auction_count2', 'prev_overbid2', 'prev_giveup_one2', 'prev_give_before_six2', 'prev_wins2', 'prev_bids2', 'prev_bom_bids2',
+                            'distance3', 'bids_so_far3', 'perc_to_bin3', 'is_weekend', 'time_of_day',
+                            'p_prev_auction_count3', 'prev_overbid3', 'prev_giveup_one3', 'prev_give_before_six3', 'prev_wins3', 'prev_bids3', 'prev_bom_bids3',
+                            ]
         numeric_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value=-1)),
         ])
@@ -95,6 +94,10 @@ class PennyModel:
 
     def predict_proba(self, X):
         return self.model.predict_proba(self.transform(X))
+
+    def predict(self, X):
+        return self.model.predict(self.transform(X))
+
 
     def get_feature_scores(self):
         return pd.Series(self.model.steps[2][1].feature_importances_, index=self.get_column_names_from_ColumnTransformer(self.model.named_steps['preprocessor']))

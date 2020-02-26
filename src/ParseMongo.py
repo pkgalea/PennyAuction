@@ -31,6 +31,7 @@ class MongoParser:
             bid_value = card_value
             card_value = "$0"
         elif is_limit_buster:
+            print (cash_value)
             card_type = "Buster"
             if "Two" in auction_title:
                 card_value = 30
@@ -39,7 +40,8 @@ class MongoParser:
             else:
                 print("What is this?")
                 return None, None, None, None
-            bid_value = str(int((int(cash_value) - card_value)*2.5))
+ 
+            bid_value = str(int((float(cash_value) - card_value)*2.5))
             card_value = str(card_value)
             return cash_value, card_value, card_type, bid_value
 

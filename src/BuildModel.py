@@ -1,8 +1,8 @@
 import pandas as pd
 import psycopg2 as pg2
-from sklearn.ensemble import RandomForestClassifier
+#from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from imblearn.under_sampling import RandomUnderSampler
@@ -13,8 +13,8 @@ import pickle
 
 class PennyModel:
 
-    def __init__ (self):
-        self.model = None
+    def __init__ (self, model):
+        self.model = model
 
     def get_column_names_from_ColumnTransformer(self, column_transformer):    
         col_name = []
@@ -59,16 +59,17 @@ class PennyModel:
                                 'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3']
         numeric_features = ['bid', 'cashvalue','bidvalue', 'prevusers', 
                             'bids_so_far0', 'perc_to_bin0', 
-                            'p_prev_auction_count0', 'prev_overbid0', 'prev_giveup_one0', 'prev_give_before_six0', 'prev_wins0', 'prev_bids0', 'prev_bom_bids0',
+                            'prev_auction_count0', 'prev_overbid0', 'prev_giveup_one0', 'prev_give_before_six0', 'prev_wins0', 'prev_bids0', 'prev_bom_bids0',
                             'distance1', 'bids_so_far1',  'perc_to_bin1',
-                            'p_prev_auction_count1', 'prev_overbid1', 'prev_giveup_one1', 'prev_give_before_six1', 'prev_wins1', 'prev_bids1', 'prev_bom_bids1',
+                            'prev_auction_count1', 'prev_overbid1', 'prev_giveup_one1', 'prev_give_before_six1', 'prev_wins1', 'prev_bids1', 'prev_bom_bids1',
                             'distance2', 'bids_so_far2',  'perc_to_bin2',
-                            'p_prev_auction_count2', 'prev_overbid2', 'prev_giveup_one2', 'prev_give_before_six2', 'prev_wins2', 'prev_bids2', 'prev_bom_bids2',
+                            'prev_auction_count2', 'prev_overbid2', 'prev_giveup_one2', 'prev_give_before_six2', 'prev_wins2', 'prev_bids2', 'prev_bom_bids2',
                             'distance3', 'bids_so_far3', 'perc_to_bin3', 'is_weekend', 'time_of_day',
-                            'p_prev_auction_count3', 'prev_overbid3', 'prev_giveup_one3', 'prev_give_before_six3', 'prev_wins3', 'prev_bids3', 'prev_bom_bids3',
+                            'prev_auction_count3', 'prev_overbid3', 'prev_giveup_one3', 'prev_give_before_six3', 'prev_wins3', 'prev_bids3', 'prev_bom_bids3',
                             ]
         numeric_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value=-1)),
+            ('scaler', StandardScaler())
         ])
         categorical_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
@@ -77,12 +78,12 @@ class PennyModel:
             transformers=[
                 ('num', numeric_transformer, numeric_features),
                 ('cat', categorical_transformer, self.categorical_features)])
-        self.model = Pipeline_imb(steps=[('preprocessor', preprocessor),
-                                ('sampler', RandomUnderSampler()),
-                            ('classifier', RandomForestClassifier(n_estimators=200))])
+        self.pipeline = Pipeline_imb(steps=[('preprocessor', preprocessor),
+                             ('sampler', RandomUnderSampler()),
+                            ('classifier', self.model)])
 
         print ("4. Fitting model")
-        self.model.fit(self.X, y)
+        self.pipeline.fit(self.X, y)
 
     def pickle(self, filename):
         print ("5. Pickling model as penny_auction.pickle")
@@ -93,14 +94,14 @@ class PennyModel:
         return self.predict_proba(X)
 
     def predict_proba(self, X):
-        return self.model.predict_proba(self.transform(X))
+        return self.pipeline.predict_proba(self.transform(X))
 
     def predict(self, X):
-        return self.model.predict(self.transform(X))
+        return self.pipeline.predict(self.transform(X))
 
 
     def get_feature_scores(self):
-        return pd.Series(self.model.steps[2][1].feature_importances_, index=self.get_column_names_from_ColumnTransformer(self.model.named_steps['preprocessor']))
+        return pd.Series(self.pipeline.steps[2][1].feature_importances_, index=self.get_column_names_from_ColumnTransformer(self.pipeline.named_steps['preprocessor']))
 
 
 if __name__ == "__main__": 

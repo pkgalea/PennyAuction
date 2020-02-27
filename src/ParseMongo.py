@@ -23,26 +23,30 @@ class MongoParser:
         if has_bids and has_gift_card:
             card_type, bid_value = auction_title.split (" Gift Card AND", 1)
             bid_value = bid_value.split(" Bids")[0][1:]
+            card_value = card_value[1:]
         elif has_gift_card and not has_bids:
             card_type = auction_title.split (" Gift Card")[0]
-            bid_value = "0"  
+            card_value = card_value[1:]
+            bid_value = str(int((float(cash_value) - int(card_value))*2.5))
         elif has_bids and not has_gift_card and is_vouchers:
             card_type = "None"
             bid_value = card_value
-            card_value = "$0"
+            card_value = "0"
         elif is_limit_buster:
             print (cash_value)
             card_type = "Buster"
             if "Two" in auction_title:
-                card_value = 30
+                card_value = "30"
             elif "One" in auction_title:
-                card_value = 15
+                card_value = "15"
+            elif "Four" in auction_title:
+                card_value = "60"
             else:
                 print("What is this?")
                 return None, None, None, None
  
-            bid_value = str(int((float(cash_value) - card_value)*2.5))
-            card_value = str(card_value)
+            bid_value = str(int((float(cash_value) - int(card_value))*2.5))
+            card_value = card_value
             return cash_value, card_value, card_type, bid_value
 
 
@@ -74,7 +78,7 @@ class MongoParser:
                 auction_dict = {
                     "auction_id": auction_id,
                     "cash_value": int(float(cash_value)),
-                    "card_value": int(card_value[1:]),
+                    "card_value": int(card_value),
                     "card_type": card_type,
                     "bid_value": int(bid_value),
                     "limited_allowed": limited_allowed,
@@ -88,7 +92,7 @@ class MongoParser:
         cash_value, card_value, card_type, bid_value = self.parse_auction_title(auction_title)      
         limited_allowed = "is NOT LIMITED" not in html
         auction_dict["cashvalue"] = int(cash_value)
-        auction_dict["cardvalue"]=int(card_value[1:])
+        auction_dict["cardvalue"]=int(card_value)
         auction_dict["bidvalue"]=int(bid_value)
         auction_dict["cardtype"]=card_type
         auction_dict["limited_allowed"]=limited_allowed

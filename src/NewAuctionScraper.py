@@ -12,5 +12,6 @@ for aid in new_auctions:
     if not (bts.pages_collection.find_one({"_id": aid})):
         auction = bts.single_scrape(aid)
         bts.pages_collection.insert_one(auction)
+        time.sleep(1)
     i += 1
-    time.sleep(1)
+   

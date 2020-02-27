@@ -13,8 +13,10 @@ import pickle
 
 class PennyModel:
 
-    def __init__ (self, model):
+    def __init__ (self, model, is_regressor=False, use_scaler=False):
         self.model = model
+        self.is_regressor = is_regressor
+        self.use_scaler = user_scaler
 
     def get_column_names_from_ColumnTransformer(self, column_transformer):    
         col_name = []
@@ -79,9 +81,14 @@ class PennyModel:
             transformers=[
                 ('num', numeric_transformer, numeric_features),
                 ('cat', categorical_transformer, self.categorical_features)])
-        self.pipeline = Pipeline_imb(steps=[('preprocessor', preprocessor),
-               #              ('sampler', RandomUnderSampler()),
-                            ('regressor', self.model)])
+        steps = [('preprocessor', preprocessor)]
+        if self.is_regressor:
+            steps.append (('regressor', self.model))
+        else:
+            steps.append(('sampler', RandomUnderSampler()))
+            steps.append(('classifier', self.model))
+        
+        self.pipeline = Pipeline_imb(steps=steps)
 
         print ("4. Fitting model")
         self.pipeline.fit(self.X, y)

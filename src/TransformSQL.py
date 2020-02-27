@@ -7,7 +7,7 @@ import sys
 def get_list_of_dates():
 
     sdate = date(2019, 9, 20)   # start date
-    edate = date(2020, 2, 27)   # end date
+    edate = date(2020, 2, 28)   # end date
 
     delta = edate - sdate       # as timedelta
 

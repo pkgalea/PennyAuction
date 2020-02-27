@@ -16,7 +16,7 @@ class PennyModel:
     def __init__ (self, model, is_regressor=False, use_scaler=False):
         self.model = model
         self.is_regressor = is_regressor
-        self.use_scaler = user_scaler
+        self.use_scaler = use_scaler
 
     def get_column_names_from_ColumnTransformer(self, column_transformer):    
         col_name = []

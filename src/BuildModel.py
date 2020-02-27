@@ -69,8 +69,8 @@ class PennyModel:
                             'is_weekend', 'time_of_day'                            
                             ]
         numeric_transformer = Pipeline_imb(steps=[
-            ('imputer', SimpleImputer(strategy='constant', fill_value=-1)),
-            ('scaler', StandardScaler())
+            ('imputer', SimpleImputer(strategy='constant', fill_value=-1))
+       #     ('scaler', StandardScaler())
         ])
         categorical_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value='unknown')),
@@ -80,7 +80,7 @@ class PennyModel:
                 ('num', numeric_transformer, numeric_features),
                 ('cat', categorical_transformer, self.categorical_features)])
         self.pipeline = Pipeline_imb(steps=[('preprocessor', preprocessor),
-                             ('sampler', RandomUnderSampler()),
+               #              ('sampler', RandomUnderSampler()),
                             ('regressor', self.model)])
 
         print ("4. Fitting model")

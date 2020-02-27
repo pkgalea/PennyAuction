@@ -81,7 +81,7 @@ class PennyModel:
                 ('cat', categorical_transformer, self.categorical_features)])
         self.pipeline = Pipeline_imb(steps=[('preprocessor', preprocessor),
                              ('sampler', RandomUnderSampler()),
-                            ('classifier', self.model)])
+                            ('regressor', self.model)])
 
         print ("4. Fitting model")
         self.pipeline.fit(self.X, y)

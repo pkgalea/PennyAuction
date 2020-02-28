@@ -6,6 +6,7 @@ class PrevInfo:
         
     def __init__(self):
         self.prev_df = None
+        self.connect_to_sql()
 
     def connect_to_sql(self):
         print ("Connecting to SQL")

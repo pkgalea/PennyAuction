@@ -55,7 +55,7 @@ class PennyModel:
 
     def fit(self, X, y):
 
-        self.X = self.transform(X)
+        local_X = self.transform(X)
 
         self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
                                 'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3']
@@ -91,7 +91,7 @@ class PennyModel:
         self.pipeline = Pipeline_imb(steps=steps)
 
         print ("4. Fitting model")
-        self.pipeline.fit(self.X, y)
+        self.pipeline.fit(local_X, y)
 
     def pickle(self, filename):
         print ("5. Pickling model as penny_auction.pickle")

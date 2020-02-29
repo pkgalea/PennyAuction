@@ -18,7 +18,7 @@ conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='543
 for d in get_list_of_dates():
     print(d)
             
-    df = pd.read_sql("Select count(*) as acount from auctions where auctiontime < '" + d + "'", conn)
+    df = pd.read_sql("Select count(*) as acount from auctions where auctiontime < '" + d + "' and qauctionID not in (SELECT DISTINCT AuctionID from bid_transform)", conn)
     print (df.acount[0])
     if (df.acount[0] > 0):
         bashCommand = "sudo -u postgres psql -d penny -f new_transformations.sql -v auction_date='" + d + "'"

@@ -17,6 +17,21 @@ class PennyModel:
         self.model = model
         self.is_regressor = is_regressor
         self.use_scaler = use_scaler
+        self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
+                                'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3']
+        self.numeric_features = ['bid', 'cashvalue','bidvalue', 'prevusers', 
+                            'bids_so_far0', 'perc_to_bin0', 'bom_bids_so_far0', 'bom_streak0', 
+                            'prev_is_new_user0', 'prev_auction_count0', 'prev_overbid0', 'prev_giveup_one0', 'prev_give_before_six0', 'prev_wins0', 'prev_bids0', 'prev_bom_bids0',
+                            'distance1', 'bids_so_far1',  'perc_to_bin1', 'bom_bids_so_far1', 'bom_streak1', 
+                            'prev_is_new_user1', 'prev_auction_count1', 'prev_overbid1', 'prev_giveup_one1', 'prev_give_before_six1', 'prev_wins1', 'prev_bids1', 'prev_bom_bids1',
+                            'distance2', 'bids_so_far2',  'perc_to_bin2', 'bom_bids_so_far2', 'bom_streak2', 
+                            'prev_is_new_user2', 'prev_auction_count2', 'prev_overbid2', 'prev_giveup_one2', 'prev_give_before_six2', 'prev_wins2', 'prev_bids2', 'prev_bom_bids2',
+                            'distance3', 'bids_so_far3', 'perc_to_bin3', 'bom_bids_so_far3', 'bom_streak3', 
+                            'prev_is_new_user3', 'prev_auction_count3', 'prev_overbid3', 'prev_giveup_one3', 'prev_give_before_six3', 'prev_wins3', 'prev_bids3', 'prev_bom_bids3',
+                            'is_weekend', 'time_of_day'                            
+                            ]
+    def get_features_as_string(self):
+        return ",".join(self.categorical_features + self.numeric_features)
 
     def get_column_names_from_ColumnTransformer(self, column_transformer):    
         col_name = []
@@ -57,19 +72,7 @@ class PennyModel:
 
         local_X = self.transform(X)
 
-        self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
-                                'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3']
-        numeric_features = ['bid', 'cashvalue','bidvalue', 'prevusers', 
-                            'bids_so_far0', 'perc_to_bin0', 'bom_bids_so_far0', 'bom_streak0', 
-                            'prev_is_new_user0', 'prev_auction_count0', 'prev_overbid0', 'prev_giveup_one0', 'prev_give_before_six0', 'prev_wins0', 'prev_bids0', 'prev_bom_bids0',
-                            'distance1', 'bids_so_far1',  'perc_to_bin1', 'bom_bids_so_far1', 'bom_streak1', 
-                            'prev_is_new_user1', 'prev_auction_count1', 'prev_overbid1', 'prev_giveup_one1', 'prev_give_before_six1', 'prev_wins1', 'prev_bids1', 'prev_bom_bids1',
-                            'distance2', 'bids_so_far2',  'perc_to_bin2', 'bom_bids_so_far2', 'bom_streak2', 
-                            'prev_is_new_user2', 'prev_auction_count2', 'prev_overbid2', 'prev_giveup_one2', 'prev_give_before_six2', 'prev_wins2', 'prev_bids2', 'prev_bom_bids2',
-                            'distance3', 'bids_so_far3', 'perc_to_bin3', 'bom_bids_so_far3', 'bom_streak3', 
-                            'prev_is_new_user3', 'prev_auction_count3', 'prev_overbid3', 'prev_giveup_one3', 'prev_give_before_six3', 'prev_wins3', 'prev_bids3', 'prev_bom_bids3',
-                            'is_weekend', 'time_of_day'                            
-                            ]
+
         numeric_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value=-1))
        #     ('scaler', StandardScaler())
@@ -79,7 +82,7 @@ class PennyModel:
             ('onehot', OneHotEncoder(handle_unknown='error', drop='first'))])
         preprocessor = ColumnTransformer(
             transformers=[
-                ('num', numeric_transformer, numeric_features),
+                ('num', numeric_transformer, self.numeric_features),
                 ('cat', categorical_transformer, self.categorical_features)])
         steps = [('preprocessor', preprocessor)]
         if self.is_regressor:

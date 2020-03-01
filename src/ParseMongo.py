@@ -70,16 +70,16 @@ class MongoParser:
                 time_str = tds[3].text
                 if time_str.startswith("00"):
                     t = time.strptime(tds[3].text, "%H:%M:%S")
-                    print(t.tm_min*60+t.tm_sec)
+                    #print(t.tm_min*60+t.tm_sec)
                 else:
                     break
 
                 auction_dict = {
-                    "auction_id": auction_id,
-                    "cash_value": int(float(cash_value)),
-                    "card_value": int(card_value),
-                    "card_type": card_type,
-                    "bid_value": int(bid_value),
+                    "auctionid": auction_id,
+                    "cashvalue": int(float(cash_value)),
+                    "cardvalue": int(card_value),
+                    "cardtype": card_type,
+                    "bidvalue": int(bid_value),
                     "limited_allowed": limited_allowed,
                     "seconds_left": t.tm_min*60+t.tm_sec
                 }

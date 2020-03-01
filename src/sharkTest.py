@@ -8,7 +8,7 @@ def capture_auction ():
     db = myclient["penny"]
     live_collection = db["live"]
     live_collection.delete_many({})
-    capture = pyshark.LiveCapture(interface="wlp1s0") #, bpf_filter="src net 52.203.74.230")
+    capture = pyshark.LiveCapture(interface="wlp1s0", bpf_filter="host 35.153.120.167 or host 52.203.74.230")
 
     #capture = pyshark.LiveCapture()
     capture.set_debug()
@@ -21,15 +21,18 @@ def capture_auction ():
             if l.layer_name == "http":
                     if ("response_for_uri" in l.field_names):
                         if ("lb_id" in l.get("response_for_uri")):
+                          #  print(pkt.ip.src) 
                             auction = l.get("file_data")
+                          #  print(auction)
                             if (auction):
   #                              print(auction)
-                                print(l.get("response_for_uri"))
+                       #         print(l.get("response_for_uri"))
                                 auction = auction.split("(")[1].split(")")[0]
                                 auction = json.loads(auction)
         #                      print (auction)
                                 auction= auction['a']
                                 if (auction):
+
                                     auction_id = list(auction.keys())[0]
                                     auction = auction[auction_id]
                                     
@@ -37,7 +40,9 @@ def capture_auction ():
 
                                         if ('s' in auction.keys()):
                                             print ("We're done")
-                                            return
+                                            auction_dict = {"auction_id":auction_id, "auction_complete": True}
+                                            live_collection.insert_one(auction_dict) 
+                                            #return
                                         else:
                                             bh = auction['bh'][0]
                                             #print(dict_str)

@@ -112,7 +112,7 @@ class PennyModel:
         return self.pipeline.predict_proba(self.transform(X))
     
     def predict_proba_calibrated(self, X):
-        return self.calibrate_probabilties(predict_proba(X))
+        return self.calibrate_probabilties(self.predict_proba(X))
 
     def predict(self, X):
         return self.pipeline.predict(self.transform(X))

@@ -74,8 +74,8 @@ class PennyModel:
         local_X = self.transform(X)
         self.train_pop = local_X.shape[0]
         self.target_pop = sum(y)
-        self.sampled_train_pop/self.sampling_ratio + self.target_pop
-        self.sampled_target_pop = target_pop
+        self.sampled_train_pop = self.train_pop/self.sampling_ratio + self.target_pop
+        self.sampled_target_pop = self.target_pop
 
         numeric_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value=-1))

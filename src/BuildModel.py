@@ -92,7 +92,7 @@ class PennyModel:
         if self.is_regressor:
             steps.append (('regressor', self.model))
         else:
-            steps.append(('sampler', RandomUnderSampler(self.sampling_strategy=sampling_ratio)))
+            steps.append(('sampler', RandomUnderSampler(sampling_strategy=self.sampling_ratio)))
             steps.append(('classifier', self.model))
         
         self.pipeline = Pipeline_imb(steps=steps)

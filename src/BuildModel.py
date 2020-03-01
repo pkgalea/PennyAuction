@@ -13,9 +13,10 @@ import pickle
 
 class PennyModel:
 
-    def __init__ (self, model, is_regressor=False, use_scaler=False):
+    def __init__ (self, model, is_regressor=False, use_scaler=False, sampling_ratio = 1):
         self.model = model
         self.is_regressor = is_regressor
+        self.sampling_ratio = sampling_ratio
         self.use_scaler = use_scaler
         self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
                                 'is_bidomatic1', 'is_bidomatic2', 'is_bidomatic3']
@@ -56,7 +57,7 @@ class PennyModel:
     def transform(self, X):
 
         rX = X.copy()
-        print ("2. Transforming data")
+        #print ("2. Transforming data")
         rX.is_bidomatic0 = rX.is_bidomatic0.astype(str)
         rX.is_bidomatic1 = rX.is_bidomatic1.astype(str)
         rX.is_bidomatic2 = rX.is_bidomatic2.astype(str)
@@ -71,7 +72,10 @@ class PennyModel:
     def fit(self, X, y):
 
         local_X = self.transform(X)
-
+        self.train_pop = local_X.shape[0]
+        self.target_pop = sum(y)
+        self.sampled_train_pop/self.sampling_ratio + self.target_pop
+        self.sampled_target_pop = target_pop
 
         numeric_transformer = Pipeline_imb(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value=-1))
@@ -88,7 +92,7 @@ class PennyModel:
         if self.is_regressor:
             steps.append (('regressor', self.model))
         else:
-            steps.append(('sampler', RandomUnderSampler()))
+            steps.append(('sampler', RandomUnderSampler(self.sampling_strategy=sampling_ratio)))
             steps.append(('classifier', self.model))
         
         self.pipeline = Pipeline_imb(steps=steps)
@@ -106,6 +110,9 @@ class PennyModel:
 
     def predict_proba(self, X):
         return self.pipeline.predict_proba(self.transform(X))
+    
+    def predict_proba_calibrated(self, X):
+        return self.calibrate_probabilties(predict_proba(X))
 
     def predict(self, X):
         return self.pipeline.predict(self.transform(X))
@@ -114,6 +121,17 @@ class PennyModel:
     def get_feature_scores(self):
         return pd.Series(self.pipeline.steps[2][1].feature_importances_, index=self.get_column_names_from_ColumnTransformer(self.pipeline.named_steps['preprocessor']))
 
+    def calibrate_probabilties(self, data):
+
+        calibrated_data = \
+        ((data * (self.target_pop / self.train_pop) / (self.sampled_target_pop / self.sampled_train_pop)) /
+        ((
+            (1 - data) * (1 - self.target_pop / self.train_pop) / (1 - self.sampled_target_pop / self.sampled_train_pop)
+        ) +
+        (
+            data * (self.target_pop / self.train_pop) / (self.sampled_target_pop / self.sampled_train_pop)
+        )))
+        return calibrated_data
 
 if __name__ == "__main__": 
     print ("1. Reading from database")

@@ -6,8 +6,8 @@ import pymongo
 def capture_auction ():
     myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     db = myclient["penny"]
-    live_collection = db["live"]
-    live_collection.delete_many({})
+    sniffed_collection = db["sniffed_auctions"]
+    sniffed_collection.delete_many({})
     capture = pyshark.LiveCapture(interface="wlp1s0", bpf_filter="host 35.153.120.167 or host 52.203.74.230")
 
     #capture = pyshark.LiveCapture()
@@ -41,7 +41,7 @@ def capture_auction ():
                                         if ('s' in auction.keys()):
                                             print ("We're done")
                                             auction_dict = {"auction_id":auction_id, "auction_complete": True}
-                                            live_collection.insert_one(auction_dict) 
+                                            sniffed_collection.insert_one(auction_dict) 
                                             #return
                                         else:
                                             bh = auction['bh'][0]
@@ -52,7 +52,7 @@ def capture_auction ():
                                             print("*****************")
                                             print(auction_id, bid, username, is_bidomatic)
                                             auction_dict = {"auction_id":auction_id, "bid": bid, "username":username, "is_bidomatic":is_bidomatic}
-                                            live_collection.insert_one(auction_dict)    
+                                            sniffed_collection.insert_one(auction_dict)    
                                             print("*****************")
                                     else:
                                         print(auction)

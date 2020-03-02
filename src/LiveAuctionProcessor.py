@@ -13,12 +13,15 @@ class LiveAuctionProcessor:
         self.auction_id = auction_dict["auctionid"]
         myclient = pymongo.MongoClient("mongodb://localhost:27017/")
         db = myclient["penny"]
-        self.live_collection = db["live"]
+        self.sniffed_collection = db["sniffed_auctions"]
+        self.tracking_collection = db["tracking"]
         self.bh = []
         self.prev_user_info = prev_user_info
         self.my_username = "AAAAAAAHH"
         self.penny_model = penny_model
-        self.out_dict = {}
+        self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"]}
+        self.tracking_collection.insert_one({"_id": self.auction_id, "data": self.out_dict})
+        self.sold = False
         self.columns = ['auctionid', 'is_winner', 'cardtype', 'cashvalue', 'cardvalue', 'fee',
        'bidvalue', 'limited_allowed', 'is_locked', 'auctiontime', 'bid',
        'is_bidomatic', 'bids_so_far', 'username', 'prevusers', 'giveup',
@@ -124,20 +127,24 @@ class LiveAuctionProcessor:
 
     def check_for_new_bids(self):
         #print (self.auction_id)
-        for u in self.live_collection.find({"auction_id":self.auction_id}):
-            self.bh.append({"bid":u["bid"], "username":u["username"], "is_bidomatic": u["is_bidomatic"]})
-            self.live_collection.delete_one({"auction_id":self.auction_id, "bid":u["bid"]})
-        return self.bh
+        for u in self.sniffed_collection.find({"auction_id":self.auction_id}):
+            if ("auction_complete" in u.keys()):
+                return False
+            else:
+                self.bh.append({"bid":u["bid"], "username":u["username"], "is_bidomatic": u["is_bidomatic"]})
+                self.sniffed_collection.delete_one({"auction_id":self.auction_id, "bid":u["bid"]})
+        return True
 
 
     def calculate_ev(self):
         df_out = pd.DataFrame.from_dict({k:[v] for k, v in self.auction_dict.items()})
-       # print(df_out.head())
         df_out = df_out[self.columns]
-        self.proba =  self.penny_model.predict_proba_calibrated(df_out)[:,1][0]
-        #print(auction_dict)
+        df_out["is_bidomatic"]=True
+        bom_proba =  self.penny_model.predict_proba_calibrated(df_out)[:,1][0]
+        df_out["is_bidomatic"]=False
+        manual_proba =  self.penny_model.predict_proba_calibrated(df_out)[:,1][0]
         if (len(self.bh) > 0):
-            self.bh[-1]["proba"] = self.proba
+            #self.bh[-1]["proba"] = bom_proba
             #print(bh[-1]["username"], bh[-1]["bid"], proba)
             bid = self.bh[-1]["bid"] + 1
             last_user = self.bh[-1]["username"]
@@ -150,16 +157,25 @@ class LiveAuctionProcessor:
         #print(bid)
         potential_profit = self.auction_dict["cashvalue"] - self.auction_dict["fee"] - bid/100 - .40
         potential_loss = -.40
-        ev = potential_profit * proba + potential_loss * (1-proba)
+        bom_ev = potential_profit * bom_proba + potential_loss * (1-bom_proba)
+        manual_ev = potential_profit * manual_proba + potential_loss * (1-manual_proba)
+
+
         self.out_dict["potential_profit"] = potential_profit
-        self.out_dict["last_user"] = 
-        self.out_dict["ev"] = ev
+        self.out_dict["bom_proba"] = bom_proba
+        self.out_dict["manual_proba"] = manual_proba
+        self.out_dict["bom_ev"] = bom_ev
+        self.out_dict["manual_ev"] = manual_ev
         self.out_dict["bid"] = bid-1
         self.out_dict["last_user"]= last_user
+        self.tracking_collection.update_one({"_id":self.auction_id}, {"$set": {"data": self.out_dict}})
+
 
     def get_expected_value(self):
         prev_len = len(self.bh)
-        self.check_for_new_bids()
+        if not self.check_for_new_bids():
+            self.tracking_collection.delete_many({"_id":self.auction_id})
+            return None
         if (prev_len != len(self.bh) or len(self.bh)==0):
             self.process()
             self.calculate_ev()

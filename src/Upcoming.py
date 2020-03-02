@@ -18,8 +18,11 @@ import threading
 
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-db = myclient["live_penny"]
+db = myclient["penny"]
 upcoming_collection = db["upcoming"]
+tracking_collection = db["tracking"]
+tracking_collection.delete_many({})
+
 
 prev_info = pickle.load( open( "pi.pkl", "rb" ) )
 penny_model = pickle.load( open( "rf.pkl", "rb" ) )
@@ -28,13 +31,19 @@ bts.login(2)
 mp = MongoParser()
 
 
-def process_auction(auction_dict):
+def process_auction(auction_dict, handle):
     lap = LiveAuctionProcessor(upcoming_auctions[0], prev_info, penny_model)
 
     #fig, ax = plt.subplots()
 
     while True:
-        print(lap.get_expected_value())
+        out_dict = lap.get_expected_value()
+        if (not out_dict):
+            driver.switch_to.window(handle)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            return   # auction is sold
+        #print(out_dict)
         time.sleep(.5)
 
 
@@ -63,11 +72,11 @@ while (True):
                 ActionChains(driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
                 #driver.switch_to.window(driver.window_handles[-1])
                 break
-            t1 = threading.Thread(target=process_auction, args=(auction,))
+            t1 = threading.Thread(target=process_auction, args=(auction,driver.window_handles[-1],))
             t1.start() 
 
-    print(upcoming_auctions)
-    time.sleep(10)
+    #print(upcoming_auctions)
+    time.sleep(1)
     
 
 

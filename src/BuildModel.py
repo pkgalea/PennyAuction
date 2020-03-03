@@ -1,6 +1,5 @@
 import pandas as pd
 import psycopg2 as pg2
-#from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
@@ -133,17 +132,17 @@ class PennyModel:
         )))
         return calibrated_data
 
-if __name__ == "__main__": 
-    print ("1. Reading from database")
-    conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='')
-    df = pd.read_sql ("""Select * from auction_full""", conn)
+    def get_actual_and_potential_profits(X, y):
+        potential_profits =  (X.cashvalue - X.fee - X.bid/100) -.4
+        actual_profits = y * (X.cashvalue - X.fee - X.bid/100) -.4
+        return potential_profits, actual_profits
+
+    def get_score(X, y):
+        cprobs = self.predict_proba_calibrated(X)[:,1]
+        pp, ap = get_actual_and_potential_profits(X,y)
+        expected_value = np.multiply(cprobs, pp) -  (1-cprobs)*.4
+        return ap[expected_value < 0]
+   #     (sum(ap[expected_value>0]), X_test.shape[0], sum(expected_value>0), sum((ap > 0) & (expected_value >0)), 
+   #     sum((ap > 0) & (expected_value < 0)), sum((ap < 0)&(expected_value > 0)), sum((ap < 0)&(expected_value < 0))))
 
 
-    print ("3. Splitting into Train/Test Sets")
-    y = df['is_winner']
-    X = df
-    X_train, X_test, y_train, y_test = train_test_split(X, y )#, random_state=0) 
-
-    pm = PennyModel()
-    pm.fit(X, y)
-    pm.pickle ("pickle/pickle.pickle")

@@ -31,3 +31,7 @@ class SQLAuctionTransformer:
                 process = subprocess.Popen(bashCommand.split())
                 output, error = process.communicate()
         conn.close
+
+if __name__ == "__main__": 
+    sat = SQLAuctionTransformer()
+    sat.run_sql_transformations()

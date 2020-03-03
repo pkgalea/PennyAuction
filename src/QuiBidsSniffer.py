@@ -3,7 +3,7 @@ import json
 import pymongo
 
 
-class QuiBidsSniffer()
+class QuiBidsSniffer():
 
     def __init__(self):
         pass
@@ -64,5 +64,5 @@ class QuiBidsSniffer()
 
 
 if __name__ == "__main__": 
-    qbs = QuiBidsSniffer ()
+    qbs = QuiBidsSniffer()
     qbs.capture_auction()

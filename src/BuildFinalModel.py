@@ -1,5 +1,5 @@
-import BuildModel
-import PrevInfo
+from BuildModel import PennyModel
+from PrevInfo import PrevInfo
 import psycopg2 as pg2
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier

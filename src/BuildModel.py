@@ -66,12 +66,12 @@ class PennyModel:
         X["time_of_day"]=[x.hour*60+x.minute for x in X["auctiontime"]]
         X["is_weekend"] = [x.weekday() >=6 for x in X["auctiontime"]]
 
-        return rX
+        #return rX
 
     def fit(self, X, y):
 
-        local_X = self.transform(X)
-        self.train_pop = local_X.shape[0]
+        self.transform(X)
+        self.train_pop = X.shape[0]
         self.target_pop = sum(y)
         self.sampled_train_pop = self.target_pop/self.sampling_ratio + self.target_pop
         self.sampled_target_pop = self.target_pop
@@ -97,7 +97,7 @@ class PennyModel:
         self.pipeline = Pipeline_imb(steps=steps)
 
         print ("4. Fitting model")
-        self.pipeline.fit(local_X, y)
+        self.pipeline.fit(X, y)
 
     def pickle(self, filename):
         print ("5. Pickling model as penny_auction.pickle")

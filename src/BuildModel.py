@@ -139,7 +139,7 @@ class PennyModel:
 
     def get_score(self, X, y):
         cprobs = self.predict_proba_calibrated(X)[:,1]
-        pp, ap = get_actual_and_potential_profits(X,y)
+        pp, ap = self.get_actual_and_potential_profits(X,y)
         expected_value = np.multiply(cprobs, pp) -  (1-cprobs)*.4
         return ap[expected_value < 0]
    #     (sum(ap[expected_value>0]), X_test.shape[0], sum(expected_value>0), sum((ap > 0) & (expected_value >0)), 

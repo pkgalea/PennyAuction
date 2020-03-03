@@ -87,7 +87,7 @@ class BidTrackerScraper:
         time.sleep(sleep_time)
 
     def _get_all_auction_ids_for_group(self, auction_group):
-         """ 
+        """ 
         Returns a list of all the auctionIds for a particular auction group (e.g. Amazon $50 + 30 bids)
   
         Parameters: auction_group (str): The auction group to be read(e.g. Amazon $50 + 30 bids)  
@@ -103,7 +103,7 @@ class BidTrackerScraper:
     
     
     def _scrape_auction(self, aID, auction_group, sleep_time=1):
-         """ 
+        """ 
         Scrapes all three relevant auction pages for a specific auction
 
         Parameters:
@@ -129,7 +129,7 @@ class BidTrackerScraper:
 
 
     def _scrape_auction_group(self, auction_group, break_after):
-         """ 
+        """ 
         Scrapes all auctions for an auction group (e.g. Amazon $50 + 30)
   
         Parameters: 

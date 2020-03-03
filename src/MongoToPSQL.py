@@ -4,12 +4,33 @@ import psycopg2 as pg2
 import sys
 
 class MongoToPSQL:
+    """ 
+    Takes the parsed features from the Auctions collection in Mongo and fills the auctions and bids tables in psql
+      
+    Attributes: 
+        db (MongoDBClient): The db client of the mongoDB
+        password(str): The password for the PostgresSQL database
+    """
 
     def __init__(self, password):
+        """ 
+        The constructor for MongoToPSQL class. 
+  
+        Parameters: 
+            password(str): The password for the PostgresSQL database  
+        Returns: None  
+        """
         self.db = None
         self.password = password
 
     def migrate_auctions(self, cursor):
+        """ 
+        Migrates the auctions collection from Mongo to the auction table in PSQL
+  
+        Parameters: 
+            cursor (MongoDBCursor): A cursor for the mongoDB auctions collection  
+        Returns: None  
+        """
         auction_collection = self.db["auctions"]
         sql = "SELECT qauctionid from auctions"
         cursor.execute(sql)
@@ -34,10 +55,24 @@ class MongoToPSQL:
         return exclude_qauctionids
 
     def connect_to_mongo(self):
+        """ 
+        Connects to the MongoDB
+  
+        Parameters: None  
+        Returns: None  
+        """
         myclient = pymongo.MongoClient("mongodb://localhost:27017/")
         self.db = myclient["penny"]
 
     def migrate_bids(self, cursor, exclude_qauctionids):
+        """ 
+        Migrates the bids collection from mongo to the bids table in PSQL
+  
+        Parameters:     
+            cursor (MongoDBCursor): A cursor for the mongoDB auctions collection 
+            exclude_qauctionids list(str):  A list of auctions to NOT migrate over to sql 
+        Returns: None  
+        """
         bids_collection = self.db["bids"]
         
         sql = "SELECT distinct auctionid from bids"
@@ -58,6 +93,12 @@ class MongoToPSQL:
             i += 1
 
     def migrate_to_sql(self):
+        """ 
+        Migrates the auctions and bids collections to psql 
+  
+        Parameters: None  
+        Returns: None  
+        """
         self.connect_to_mongo()
 
         conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password=self.password)

@@ -1,10 +1,13 @@
-﻿/*delete from bids where auctionid in (select qauctionid from auctions where cardvalue = 50 and bidvalue=0);
-delete from auctions where auctionid in (select auctionid from auctions where cardvalue = 50 and bidvalue=0);
-*/
+﻿
+/* SQL File to transform auctions and bids table to full_auction_table, which is fed to the machine learning models. 
+Expectes a date string as a parameter so that the transformations can be run in batches by date */
 
+/* begin transaction.  */
 BEGIN;
 
-
+/* creates bid_transform_temp table which gets features such as bids_so_far, fee, and streak 
+   only run for auctions less than the date and for auctions not already in the bid_transform table
+*/ 
 create temp table bid_transform_temp on commit drop as
 with bozo as
 (
@@ -35,15 +38,16 @@ Select bids.auctionid,
  bids_so_far/(cashvalue*2.5) as perc_to_bin
 from bozo order by auctionid, bid;
 
- 
+/* indices to speed up the run */
 CREATE INDEX av_username_idx ON bid_transform_temp USING btree (username);
 CREATE INDEX av_auctionid_idx ON bid_transform_temp USING btree (auctionid);
 CREATE INDEX av_bid_idx ON bid_transform_temp USING btree (bid);
 
-/*create table bid_transform as */
+/* add these rows to the permanent bid_transform table */
 insert into bid_transform 
 select * from bid_transform_temp;
 
+/* get information for all users prior to the current row*/
 create temp table prev_auction_data on commit drop as
 with bozo as 
 (
@@ -63,10 +67,12 @@ sum(bids) over (partition by username order by auctiontime) - bids as prev_bid_c
 row_number() over (partition by username order by auctiontime) - 1  as prev_auction_count
 from bozo order by auctiontime;
 
+/* create index to speed up the run */
 CREATE INDEX pad_username_idx ON prev_auction_data USING btree (username);
 CREATE INDEX pad_auctionid_idx ON prev_auction_data USING btree (auctionid);
 
 
+/* creates a temporary table that joins the bid transform and previous tables */
 create temp table auction_unified on commit drop as
 Select a.*, (CASE WHEN p.prev_auction_count =0 then 1 ELSE prev_auction_count END) as prev_auction_count,
 (CASE WHEN prev_auction_count =0 THEN 1 ELSE 0 END) as prev_is_new_user,
@@ -78,17 +84,18 @@ prev_bid_count as prev_bids,
 prev_bom_bid_count as prev_bom_bids
 from bid_transform_temp a inner join prev_auction_data p on a.auctionid = p.auctionid and a.username = p.username;
 
+/* indices for speed*/
 CREATE INDEX au_username_idx ON auction_unified USING btree (username);
 CREATE INDEX au_auctionid_idx ON auction_unified USING btree (auctionid);
 CREATE INDEX au_bid_idx ON auction_unified USING btree (bid);
 
-
+/* pivot table that connects the current row to the past users WITHIN this auction. One row for each previous user*/
 CREATE temp table ab_pivot on commit drop as
 Select n.auctionid, n.bid, max(p.bid) as max_bid, p.username from auction_unified n inner join auction_unified p 
 on n.auctionid = p.auctionid and p.bid < n.bid and n.username <> p.username
 group by p.username, n.auctionid, n.bid;
 
-
+/* create temporary table pulling the info from each previous user in the pivot table above */
 CREATE temp table full_joined on commit drop as
 Select m.is_winner, m.auctionid, m.cardtype, m.cashvalue, m.cardvalue, m.auctiontime, m.bidvalue, m.limited_allowed, m.bid,
  m.username, m.is_locked, m.is_bidomatic, m.bids_so_far,  m.prevusers,
@@ -113,7 +120,7 @@ from auction_unified m left join ab_pivot piv on m.auctionid = piv.auctionid and
 left join auction_unified p on p.auctionid = m.auctionid and p.bid = piv.max_bid;
 
 
-
+/* now lag in the above table to get User0, User1, User2, User3 info */
 CREATE  temp table auction_lagged on commit drop as
 select auctionid, is_winner, cardtype, cashvalue, cardvalue, fee, bidvalue, limited_allowed, is_locked, auctiontime, bid, is_bidomatic, bids_so_far,
  username, prevusers,
@@ -187,12 +194,12 @@ lag(p_prev_bom_bids, 3) over (partition by auctionID, bid order by distance DESC
 
 FROM full_joined ;
 
-
+/* Finally, insert into the full table */
 /*create table auction_full as */
 insert into auction_full  
 Select * from auction_lagged where distance0 is null or distance0 = 1;
 
-
+/* end transaction */
 END;
 
 

@@ -68,9 +68,7 @@ class PennyModel:
 
         #return rX
 
-    def fit(self, X, y):
-
-        self.transform(X)
+    def internal_fit (self, X, y):
         self.train_pop = X.shape[0]
         self.target_pop = sum(y)
         self.sampled_train_pop = self.target_pop/self.sampling_ratio + self.target_pop
@@ -98,6 +96,14 @@ class PennyModel:
 
         print ("4. Fitting model")
         self.pipeline.fit(X, y)
+
+
+    def fit_already_transformed (self, X, y)
+        self.internal_fit(X, y)
+
+    def fit_transform(self, X, y):
+        self.transform(X)
+        self.internal_fit(X, y)
 
     def pickle(self, filename):
         print ("5. Pickling model as penny_auction.pickle")

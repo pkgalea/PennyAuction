@@ -13,7 +13,7 @@ df = pd.read_sql ("""Select *  from auction_full where auctiontime >= '2020-01-0
 conn.close()
 
 X = df
-y = df['is_winner']
+y = df['is_winner']  
 
 model = RandomForestClassifier(n_estimators=200)
 

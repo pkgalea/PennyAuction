@@ -55,7 +55,7 @@ class BidTrackerScraper:
         self._auction_pages = dict(config['auction-pages'])        
 
     def login(self, sleep_time=1):
-         """ 
+        """ 
         Uses requests to log into bid tracker class.  
   
         Parameters: 

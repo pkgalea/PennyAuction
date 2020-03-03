@@ -15,7 +15,7 @@ conn.close()
 X = df
 y = df['is_winner']
 
-model = RandomForestClassifier(n_estimators=200, n_jobs=-1)
+model = RandomForestClassifier(n_estimators=200)
 
 pm = BuildModel.PennyModel(model, is_regressor=False,sampling_ratio=.5 )
 pm.fit(X, y)

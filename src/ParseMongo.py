@@ -4,15 +4,32 @@ import time
 from datetime import datetime
 
 
-
-
+""" 
+    Parses the raw html pages downloaded by the BidTrackerScraper and stores the important features in the auctions colleciton in Mongo.  
+      
+    Attributes: 
+        auction_list (list):  A list of auction dictonary objects.
+    """
 class MongoParser:
 
     def __init__(self):
+        """ 
+        The constructor for the MongoParser class. 
+  
+        Parameters: None  
+        Returns: None
+        """
         self.auction_list = []
 
-    
     def parse_auction_title (self, auction_title):
+        """ 
+        Parses the title of an auction from the Bid tracker website to get the type of item, value and the number of voucher bids 
+  
+        Parameters: 
+            auction_title(str): The auction title to be parsed  
+        Returns:
+            (str, str, str, str):  Cash Value, Card Value, Card Type and Bid Value for the auction as strings.  
+        """
         card_value, auction_title = auction_title.split(" ", 1)
         has_bids = "Bids" in auction_title
         has_gift_card = "Gift Card" in auction_title
@@ -47,8 +64,6 @@ class MongoParser:
             bid_value = str(int((float(cash_value) - int(card_value))*2.5))
             card_value = card_value
             return cash_value, card_value, card_type, bid_value
-
-
         else:
             print("what is this?") 
             return None, None, None, None
@@ -56,6 +71,14 @@ class MongoParser:
 
 
     def parse_upcoming_auction_page(self, html):
+        """ 
+        Parses the upcoming auction pages to be fed to the live auction monitor
+  
+        Parameters: 
+            html:  The raw html of the upcoming auctions pages from BidTracker
+        Returns: 
+            list (dict): A list of auction dictionaries for the upcoming auctions
+        """
         soup = BeautifulSoup(html, 'html.parser')
         upcoming_auctions = []
         for tr in soup.find_all("tr", {"class": "tr-inner"}):
@@ -87,6 +110,16 @@ class MongoParser:
         return upcoming_auctions        
 
     def parse_auction_page(self, qauction_id, html, auction_dict):
+        """ 
+        Parses the Auction.asp page from BidTracker, which has general auction info
+  
+        Parameters: 
+            qauction_id(str): The QuiBids Auction ID to be scraped
+            html(str): The raw html scraped for that auction
+            auction_dict(dict):  The dictionary of features to be filled
+
+        Returns: None
+        """
         auction_title=html.split(qauction_id + " - ")[1]
         cash_value, card_value, card_type, bid_value = self.parse_auction_title(auction_title)      
         limited_allowed = "is NOT LIMITED" not in html
@@ -98,6 +131,15 @@ class MongoParser:
 
         
     def parse_auction_table_page(self, qauction_id, html, auction_dict):
+        """ 
+        Parses the Auction Table Page from Bid Tracker which has info like run time, locked price and tracking
+  
+        Parameters: 
+            qauction_id (str):  The id of the auction to be scraped
+            html: The raw html of the auction table page scraped by the bid scraper.
+            auction_dict: The auction dictionary to be filled in with features
+        Returns: None
+        """
         soup = BeautifulSoup(html, 'html.parser')
         tds = soup.find_all("td")
         tracking = str(tds[0]).split('%')[0].split()[1]
@@ -114,6 +156,16 @@ class MongoParser:
         
 
     def parse_history_page(self, qauction_id, html):
+        """ 
+        Parse the history page from the Bid Tracker class which has the history of the bids of the auction.
+  
+        Parameters: 
+            qauction_id (str):  The id of the auction to be scraped
+            html: The raw html of the auction history page scraped by the bid scraper.
+
+        Returns: 
+            list (dict): A list of bid history dictionaries (auction_id, bid, user, is_bidomatic)
+        """
         soup = BeautifulSoup(html, 'html.parser')
         tds = soup.find_all("td")[3:]
         bids_list = []
@@ -126,6 +178,12 @@ class MongoParser:
         return bids_list
 
     def parse(self):
+        """ 
+        Goes through all pages in the page collection and parses the pages if the auction id is not already in the auction collection. 
+  
+        Parameters: None  
+        Returns: None
+        """
         
         myclient = pymongo.MongoClient("mongodb://localhost:27017/")
         db = myclient["penny"]
@@ -133,7 +191,6 @@ class MongoParser:
         auction_collection = db["auctions"]
         bids_collection = db["bids"]
             
-
         i = 0 
         prev_auct_group = "bozo"
         for p in pages_collection.find({}):

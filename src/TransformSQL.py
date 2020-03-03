@@ -21,7 +21,7 @@ class SQLAuctionTransformer:
 
     def run_sql_transformations(self):
         conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
-        for d in get_list_of_dates():
+        for d in self.get_list_of_dates():
             print(d)
                     
             df = pd.read_sql("Select count(*) as acount from auctions where auctiontime < '" + d + "' and qauctionID not in (SELECT DISTINCT AuctionID from bid_transform)", conn)

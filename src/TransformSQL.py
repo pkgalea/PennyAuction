@@ -4,6 +4,7 @@ import subprocess
 import pandas as pd
 import sys
 
+
 def get_list_of_dates():
 
     sdate = date(2019, 9, 20)   # start date

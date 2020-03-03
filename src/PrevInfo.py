@@ -3,7 +3,14 @@ import psycopg2 as pg2
 import pickle
 
 class PrevInfo:
-        
+    """ 
+    Creates a table of previous user history that gets pickled for the live auction tracker.
+      
+    Attributes: 
+        prev_df(DataFrame): The db client of the mongoDB
+        password(str): The password for the PostgresSQL database
+    """
+     
     def __init__(self):
         self.prev_df = None
         self.connect_to_sql()

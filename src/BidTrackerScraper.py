@@ -77,7 +77,7 @@ class BidTrackerScraper:
             '__EVENTVALIDATION': ev["value"],
             'ctl00$MainContent$UserName': self._username,
             'ctl00$MainContent$Password': self._password,
-            'ctl00$MainContent$ctl05']: "Log+in"
+            'ctl00$MainContent$ctl05': "Log+in"
         }
 
         time.sleep(sleep_time)

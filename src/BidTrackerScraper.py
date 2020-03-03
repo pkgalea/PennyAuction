@@ -62,8 +62,7 @@ class BidTrackerScraper:
             sleep_time(float): How many seconds to sleep after logging in (to prevent server overload)
         Returns: None  
         """       
-        self._read_config()
-        payload = {}     
+        self._read_config()  
         r = self._session.get("https://www.bidtracker.info/Account/Login" )
         print (r.status_code)
         soup = BeautifulSoup(r.text, 'html.parser')

@@ -132,12 +132,12 @@ class PennyModel:
         )))
         return calibrated_data
 
-    def get_actual_and_potential_profits(X, y):
+    def get_actual_and_potential_profits(self, X, y):
         potential_profits =  (X.cashvalue - X.fee - X.bid/100) -.4
         actual_profits = y * (X.cashvalue - X.fee - X.bid/100) -.4
         return potential_profits, actual_profits
 
-    def get_score(X, y):
+    def get_score(self, X, y):
         cprobs = self.predict_proba_calibrated(X)[:,1]
         pp, ap = get_actual_and_potential_profits(X,y)
         expected_value = np.multiply(cprobs, pp) -  (1-cprobs)*.4

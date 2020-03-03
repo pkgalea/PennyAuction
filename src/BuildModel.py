@@ -98,7 +98,7 @@ class PennyModel:
         self.pipeline.fit(X, y)
 
 
-    def fit_already_transformed (self, X, y)
+    def fit_already_transformed (self, X, y):
         self.internal_fit(X, y)
 
     def fit_transform(self, X, y):

@@ -17,7 +17,7 @@ y = df['is_winner']
 
 model = RandomForestClassifier(n_estimators=200)
 
-pm = PennyModel(model, is_regressor=False,sampling_ratio=.5 )
+pm = PennyModel(model,sampling_ratio=.5 )
 pm.fit_transform(X, y)
 pm.pickle("rf.pkl")
 pi = PrevInfo()

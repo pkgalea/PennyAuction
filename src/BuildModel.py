@@ -15,11 +15,19 @@ class PennyModel:
     The Model for the penny auction.   Takes a sklearn classifier and fits the model after transformation.
 
     Attributes: 
-        
+        model (SklearnClassifier): The model for the regression
+        user_scaler (bool): Whether or not to scale the data first
+        sampling_ratio (float):  The ratio of the minority class to the majority class
+        numeric_features (list(str)):  The numerical features of the model
+        cateogorical_features (list(str)): The categorical features of the model
     """
-    def __init__ (self, model, is_regressor=False, use_scaler=False, sampling_ratio = 1):
+    def __init__ (self, model,  use_scaler=False, sampling_ratio = 1):
+        """
+
+        Parameters:
+        Returns:
+        """
         self.model = model
-        self.is_regressor = is_regressor
         self.sampling_ratio = sampling_ratio
         self.use_scaler = use_scaler
         self.categorical_features = ['cardtype', 'limited_allowed', 'is_locked', 'is_bidomatic', 'is_bidomatic0', 
@@ -35,10 +43,22 @@ class PennyModel:
                             'prev_is_new_user3', 'prev_auction_count3', 'prev_overbid3', 'prev_giveup_one3', 'prev_give_before_six3', 'prev_wins3', 'prev_bids3', 'prev_bom_bids3',
                             'is_weekend', 'time_of_day'                            
                             ]
+
     def get_features_as_string(self):
+        """
+        Returns all the features of the model.
+
+        Parameters:
+        Returns:
+        """
         return ",".join(self.categorical_features + self.numeric_features)
 
     def get_column_names_from_ColumnTransformer(self, column_transformer):    
+        """
+
+        Parameters:
+        Returns:
+        """
         col_name = []
         for transformer_in_columns in column_transformer.transformers_[:-1]:#the last transformer is ColumnTransformer's 'remainder'
             raw_col_name = transformer_in_columns[2]
@@ -59,11 +79,21 @@ class PennyModel:
         return col_name    
 
     def transform(self, X):
+        """
+
+        Parameters:
+        Returns:
+        """
 
         rX = X.copy()
         return transform_no_copy(rX)
     
     def transform_no_copy(self, X):
+        """
+
+        Parameters:
+        Returns:
+        """
 
         #rX = X.copy()
         #print ("2. Transforming data")
@@ -78,6 +108,12 @@ class PennyModel:
 
 
     def internal_fit (self, X, y):
+        """
+        Fits self.model 
+
+        Parameters:
+        Returns:
+        """
         self.train_pop = X.shape[0]
         self.target_pop = sum(y)
         self.sampled_train_pop = self.target_pop/self.sampling_ratio + self.target_pop
@@ -95,11 +131,8 @@ class PennyModel:
                 ('num', numeric_transformer, self.numeric_features),
                 ('cat', categorical_transformer, self.categorical_features)])
         steps = [('preprocessor', preprocessor)]
-        if self.is_regressor:
-            steps.append (('regressor', self.model))
-        else:
-            steps.append(('sampler', RandomUnderSampler(sampling_strategy=self.sampling_ratio)))
-            steps.append(('classifier', self.model))
+        steps.append(('sampler', RandomUnderSampler(sampling_strategy=self.sampling_ratio)))
+        steps.append(('classifier', self.model))
         
         self.pipeline = Pipeline_imb(steps=steps)
 
@@ -108,34 +141,79 @@ class PennyModel:
 
 
     def fit_already_transformed (self, X, y):
+        """
+        fits X if it's already been transformed.
+
+        Parameters:
+        Returns:
+        """
         self.internal_fit(X, y)
 
     def fit_transform(self, X, y):
+        """
+        fits and transforms X.
+
+        Parameters:
+        Returns:
+        """
         self.transform_no_copy(X)
         self.internal_fit(X, y)
 
     def pickle(self, filename):
+        """
+        Writes this class as a pickle file to filename
+
+        Parameters:
+        Returns:
+        """
         print ("5. Pickling model as penny_auction.pickle")
         pickle.dump( self, open( filename, "wb" ) )
 
-    def predict_proba_from_json(self, X_json):
-        X = pd.DataFrame.from_dict(X_json)
-        return self.predict_proba(X)
-
+ 
     def predict_proba(self, X):
-        return self.pipeline.predict_proba(self.transform(X))
+        """
+        Returns the predicted probabilities that the auction will end, in the UNDERSAMPLED data set.
+
+        Parameters:
+        Returns:
+        """
+       return self.pipeline.predict_proba(self.transform(X))
     
     def predict_proba_calibrated(self, X):
+        """
+        Returns the probabilities from the model AFTER accounting for the undersampling.
+
+        Parameters:
+        Returns:
+        """
         return self.calibrate_probabilties(self.predict_proba(X))
 
     def predict(self, X):
+        """
+        Calls predict on the model to get binary whether or not the auction will end.
+
+        Parameters:
+        Returns:
+        """
         return self.pipeline.predict(self.transform(X))
 
 
     def get_feature_scores(self):
+        """
+        Returns the feature importances from the model
+
+        Parameters:
+        Returns:
+        """
         return pd.Series(self.pipeline.steps[2][1].feature_importances_, index=self.get_column_names_from_ColumnTransformer(self.pipeline.named_steps['preprocessor']))
 
     def calibrate_probabilties(self, data):
+        """
+        Recalibrates the probabilities to account for the undersampling.  So if the model says 20%, it will comeout as something like 1.2%
+
+        Parameters:
+        Returns:
+        """
 
         calibrated_data = \
         ((data * (self.target_pop / self.train_pop) / (self.sampled_target_pop / self.sampled_train_pop)) /
@@ -148,11 +226,23 @@ class PennyModel:
         return calibrated_data
 
     def get_actual_and_potential_profits(self, X, y):
+        """
+        returns the actual and potential profits over X
+
+        Parameters:
+        Returns:
+        """
         potential_profits =  (X.cashvalue - X.fee - X.bid/100) -.4
         actual_profits = y * (X.cashvalue - X.fee - X.bid/100) -.4
         return potential_profits, actual_profits
 
     def get_score(self, X, y):
+        """
+        Returns the expected profit over the set X
+
+        Parameters:
+        Returns:
+        """
         cprobs = self.predict_proba_calibrated(X)[:,1]
         pp, ap = self.get_actual_and_potential_profits(X,y)
         expected_value = np.multiply(cprobs, pp) -  (1-cprobs)*.4

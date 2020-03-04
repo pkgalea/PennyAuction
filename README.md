@@ -4,13 +4,21 @@ Penny Auction Bet Optimizer
 
 QuiBids (http://www.quibids.com/) is website where items are sold for ridiculously cheap amounts, but there is a catch.  Users pay a set amount for packs "bids" ($.40 per bid).  Items start at 1 penny.  For every bid, the price of the auction goes up by 1 cent and 10 seconds are added to the clock. If the clock runs out, the winner (the final bidder) is allowed to purchase the item for the (usually) cheap price.  The site makes money by selling the bid packs
 
-I propose to make a machine learning model that uses past user data and current data from the auction to predict the probability that an auction will end if a bid is made.  This can further be turned into a profit curve to maximize exactly when the user should be bidding.
+This machine learning project is two fold:
+
+  1) Train a model to predict when an auction is going to end based upon auction data, current player actions, and past player history.
+  2) Live Auction Tracking that feeds auction information to the model in real-time.  The model will return the expected value.
+  
+### Data:
+ata was scraped from a website that tracks historical penny auction information with the owner's permission.
 
 ### Approach:
 
-The output of the machine learning model is simple:  0: Do not bid on this auction,  1: Bid on this auction.  It will sue a supervised, classification model.
+The output of the machine learning model is simple:  0: Do not bid on this auction,  1: Bid on this auction.  It is therefore a supervised, binary classification model.  Data was scraped from a website that tracks historical penny auction information with the owner's permission.
 
-The inputs are complex.  Challenges include a very unbalanced dataset and dealing with the arrow of time.  Also, how to input a user's history and how to deal with different numbers of active users.  There are also interesting choices to be made about the threshold of probability for when to actually make a bid.
+
+
+The features can 
 
 The plan is keep it simple and attempt to make a model that will predict based upon how many bids each user has done and how many bidders there are and some basic user history.
 

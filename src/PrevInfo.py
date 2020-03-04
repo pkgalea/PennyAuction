@@ -21,7 +21,7 @@ class PrevInfo:
         self.connect_to_sql()
 
     def connect_to_sql(self):
-         """ 
+        """ 
         The constructor for PrevInfo class. 
   
         Parameters: None

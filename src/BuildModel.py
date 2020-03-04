@@ -177,7 +177,7 @@ class PennyModel:
         Parameters:
         Returns:
         """
-       return self.pipeline.predict_proba(self.transform(X))
+        return self.pipeline.predict_proba(self.transform(X))
     
     def predict_proba_calibrated(self, X):
         """

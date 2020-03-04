@@ -61,17 +61,7 @@ class PennyModel:
     def transform(self, X):
 
         rX = X.copy()
-        #print ("2. Transforming data")
-        rX.is_bidomatic0 = rX.is_bidomatic0.astype(str)
-        rX.is_bidomatic1 = rX.is_bidomatic1.astype(str)
-        rX.is_bidomatic2 = rX.is_bidomatic2.astype(str)
-        rX.is_bidomatic3 = rX.is_bidomatic3.astype(str)
-
-        rX["fee"]=[0 if x == 0 else (1 if x < 50 else 1.99) for x in rX["cardvalue"]]
-        rX["time_of_day"]=[x.hour*60+x.minute for x in rX["auctiontime"]]
-        rX["is_weekend"] = [x.weekday() >=6 for x in rX["auctiontime"]]
-
-        return rX
+        return transform_no_copy(rX)
     
     def transform_no_copy(self, X):
 

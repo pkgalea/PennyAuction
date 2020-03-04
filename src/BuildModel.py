@@ -11,7 +11,12 @@ import numpy as np
 import pickle
 
 class PennyModel:
+    """ 
+    The Model for the penny auction.   Takes a sklearn classifier and fits the model after transformation.
 
+    Attributes: 
+        
+    """
     def __init__ (self, model, is_regressor=False, use_scaler=False, sampling_ratio = 1):
         self.model = model
         self.is_regressor = is_regressor
@@ -55,6 +60,21 @@ class PennyModel:
 
     def transform(self, X):
 
+        rX = X.copy()
+        #print ("2. Transforming data")
+        rX.is_bidomatic0 = rX.is_bidomatic0.astype(str)
+        rX.is_bidomatic1 = rX.is_bidomatic1.astype(str)
+        rX.is_bidomatic2 = rX.is_bidomatic2.astype(str)
+        rX.is_bidomatic3 = rX.is_bidomatic3.astype(str)
+
+        rX["fee"]=[0 if x == 0 else (1 if x < 50 else 1.99) for x in rX["cardvalue"]]
+        rX["time_of_day"]=[x.hour*60+x.minute for x in rX["auctiontime"]]
+        rX["is_weekend"] = [x.weekday() >=6 for x in rX["auctiontime"]]
+
+        return rX
+    
+    def transform_no_copy(self, X):
+
         #rX = X.copy()
         #print ("2. Transforming data")
         X.is_bidomatic0 = X.is_bidomatic0.astype(str)
@@ -66,7 +86,6 @@ class PennyModel:
         X["time_of_day"]=[x.hour*60+x.minute for x in X["auctiontime"]]
         X["is_weekend"] = [x.weekday() >=6 for x in X["auctiontime"]]
 
-        #return rX
 
     def internal_fit (self, X, y):
         self.train_pop = X.shape[0]
@@ -102,7 +121,7 @@ class PennyModel:
         self.internal_fit(X, y)
 
     def fit_transform(self, X, y):
-        self.transform(X)
+        self.transform_no_copy(X)
         self.internal_fit(X, y)
 
     def pickle(self, filename):

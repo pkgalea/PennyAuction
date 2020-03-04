@@ -16,26 +16,16 @@ import pandas as pd
 import threading
 
 
-
-myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-db = myclient["penny"]
-upcoming_collection = db["upcoming"]
-tracking_collection = db["tracking"]
-tracking_collection.delete_many({})
-
-
-prev_info = pickle.load( open( "pi.pkl", "rb" ) )
-penny_model = pickle.load( open( "rf.pkl", "rb" ) )
-bts = BidTrackerScraper() 
-bts.login(2)
-mp = MongoParser()
-
+# TODO: Make this a class!
 
 def process_auction(auction_dict, handle):
+    """
+        Takes the upcoming auction and launches a Live Auction Processror class.   Also closes the web page once it's done.
+        Parameters:
+            auction_dict (dict): dictionary of auction info 
+            handle (str): the selenium handle for the window 
+    """
     lap = LiveAuctionProcessor(upcoming_auctions[0], prev_info, penny_model)
-
-    #fig, ax = plt.subplots()
-
     while True:
         out_dict = lap.get_expected_value()
         if (not out_dict):
@@ -43,10 +33,19 @@ def process_auction(auction_dict, handle):
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
             return   # auction is sold
-        #print(out_dict)
         time.sleep(.5)
 
 
+myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+db = myclient["penny"]
+upcoming_collection = db["upcoming"]
+tracking_collection = db["tracking"]
+tracking_collection.delete_many({})
+prev_info = pickle.load( open( "pi.pkl", "rb" ) )
+penny_model = pickle.load( open( "rf.pkl", "rb" ) )
+bts = BidTrackerScraper() 
+bts.login(2)
+mp = MongoParser()
 
 
 driver = webdriver.Chrome()
@@ -68,9 +67,7 @@ while (True):
             elems = driver.find_elements_by_id(auction["auctionid"])
             for element in elems:
                 link = element.find_elements_by_tag_name('a')[0]
-                #link.sendKeys(keyString)
                 ActionChains(driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
-                #driver.switch_to.window(driver.window_handles[-1])
                 break
             t1 = threading.Thread(target=process_auction, args=(auction,driver.window_handles[-1],))
             t1.start() 

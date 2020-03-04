@@ -86,7 +86,7 @@ class PennyModel:
         """
 
         rX = X.copy()
-        return transform_no_copy(rX)
+        return self.transform_no_copy(rX)
     
     def transform_no_copy(self, X):
         """

@@ -43,24 +43,48 @@ tracking_collection = db["tracking"]
 thread = Thread()
 thread_stop_event = Event()
 
-def randomNumberGenerator():
-    """
-    Generate a random number every 1 second and emit to a socketio instance (broadcast)
-    Ideally to be run in a separate thread?
-    """
-    #infinite loop of magical random numbers
-    print("Making random numbers")
-    while not thread_stop_event.isSet():
 
-        upcoming = upcoming_collection.find_one({})["auctions"]
-        upcoming_str = ""
-        for u in upcoming:
-            print(u)
-            if (u["cardtype"] == "None"):
-                upcoming_str  += str(u["auctionid"]) + ": Bid Pack "  + str(u["bidvalue"]) + " in " + str(u["seconds_left"]) + " sec<br>"
-            else:
-                upcoming_str  += str(u["auctionid"]) + ": " + u["cardtype"] + " $" + str(u["cardvalue"]) + " in " + str(u["seconds_left"]) + " sec<br>"
-        #print(upcoming)
+def get_upcoming_string(upcoming):
+    upcoming_str = ""
+    for u in upcoming:
+        if (u["cardtype"] == "None"):
+            upcoming_str  += str(u["auctionid"]) + ": Bid Pack "  + str(u["bidvalue"]) + " in " + str(u["seconds_left"]) + " sec<br>"
+        else:
+            upcoming_str  += str(u["auctionid"]) + ": " + u["cardtype"] + " $" + str(u["cardvalue"]) + " in " + str(u["seconds_left"]) + " sec<br>"
+    return upcoming_str
+
+def create_auction_table(a_data, auction_id):
+    auction_str = "<table bgcolor='#555555' border=1><TR><TD bgcolor='#777777' colspan=7>"
+    if (a_data["cardtype"] == "None"):
+        auction_str  += "<H4>" + auction_id + ": Bid Pack "  + str(a_data["bidvalue"]) + "</h4>"
+    else:
+        auction_str  += "<H4>" + auction_id + ": " + a_data["cardtype"] + " $" + str(a_data["cardvalue"]) + "</h4>"
+    if (a_data["bom_ev"] <= 0):
+        bom_bgcolor = "red"
+    else:
+        bom_bgcolor = "green"
+    if (a_data["manual_ev"] <= 0):
+        manual_bgcolor = "red"
+    else:
+        manual_bgcolor = "green"
+    auction_str += "</td></tr>"
+    auction_str += "<tr><td>Current Bid</td><td>Current Winner</td><td>Profit if win</td><td>Prob. of Win (manual)</td><td>Expected Value (manual)</td><td>Prob. of Win (bidomatic)</td><td>Expected Value (bidomatic)</td></tr>"
+    auction_str += "<tr><td align='center'>{:}</td><td align='center'>{:}</td><td align='center'>${:.2f}</td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td>".format(str(a_data["bid"]), a_data["last_user"],
+                                    a_data["potential_profit"],a_data["manual_proba"], manual_bgcolor, a_data["manual_ev"], a_data["bom_proba"], bom_bgcolor, a_data["bom_ev"])
+    auction_str += "</table><br>"
+    return auction_str
+
+def updatePage():
+    """
+    Send a message to the page to update the live auctions and upcoming auctions.
+    
+    Parameters: None
+    Returns: None
+    """
+
+    while not thread_stop_event.isSet():
+   
+        upcoming_str = get_upcoming_string(upcoming_collection.find_one({})["auctions"])
         msg_dict = {'upcoming': upcoming_str}
         tracked_auctions = tracking_collection.find({})
         for i in range(10):
@@ -68,31 +92,18 @@ def randomNumberGenerator():
         i = 0
         for ta in tracked_auctions:
             a_data = ta["data"]
-            auction_str = "<table bgcolor='#555555' border=1><TR><TD bgcolor='#777777' colspan=7>"
-            if (a_data["cardtype"] == "None"):
-                auction_str  += "<H4>" + str(ta["_id"]) + ": Bid Pack "  + str(a_data["bidvalue"]) + "</h4>"
-            else:
-                auction_str  += "<H4>" + str(ta["_id"]) + ": " + a_data["cardtype"] + " $" + str(a_data["cardvalue"]) + "</h4>"
-            if (a_data["bom_ev"] <= 0):
-                bom_bgcolor = "red"
-            else:
-                bom_bgcolor = "green"
-            if (a_data["manual_ev"] <= 0):
-                manual_bgcolor = "red"
-            else:
-                manual_bgcolor = "green"
-            auction_str += "</td></tr>"
-            auction_str += "<tr><td>Current Bid</td><td>Current Winner</td><td>Profit if win</td><td>Prob. of Win (manual)</td><td>Expected Value (manual)</td><td>Prob. of Win (bidomatic)</td><td>Expected Value (bidomatic)</td></tr>"
-            auction_str += "<tr><td align='center'>{:}</td><td align='center'>{:}</td><td align='center'>${:.2f}</td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td>".format(str(a_data["bid"]), a_data["last_user"],
-                                         a_data["potential_profit"],a_data["manual_proba"], manual_bgcolor, a_data["manual_ev"], a_data["bom_proba"], bom_bgcolor, a_data["bom_ev"])
-            auction_str += "</table><br>"
+            if "bom_ev" not in a_data.keys():
+                print("weird error")
+                print (ta)
+                continue
+            auction_str = create_auction_table(a_data, str(ta["_id"]))
             msg_dict ["auction" + str(i)]= auction_str
             i+=1
         
         socketio.emit('newnumber', msg_dict, namespace='/test')
         
 
-        socketio.sleep(1)
+        socketio.sleep(.2)
 
 
 @app.route('/')
@@ -109,7 +120,7 @@ def test_connect():
     #Start the random number generator thread only if the thread has not been started before.
     if not thread.isAlive():
         print("Starting Thread")
-        thread = socketio.start_background_task(randomNumberGenerator)
+        thread = socketio.start_background_task(updatePage)
 
 @socketio.on('disconnect', namespace='/test')
 def test_disconnect():

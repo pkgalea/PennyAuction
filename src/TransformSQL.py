@@ -7,10 +7,10 @@ import sys
 # TODO:  Pass in the dates.
 
 class SQLAuctionTransformer:
-"""
+    """
     simply calls the sql transform scripts
     Attributes: None
-"""
+    """
     def __init__(self):
         """
             The constructor for the SQLAuctionTransformer

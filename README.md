@@ -89,6 +89,13 @@ The Roc curve indicates that the model performed quite well, with an area under 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/roc.png)
 
 
+## Feature Importance
+
+So what's important to when to bid?   There's a wide variety of Auction, In-AuctionUser, and user history history that are valid.   How many bids a user has bid per auction in the past is the number one feature.  How many bids the nearest opponent and the cash value of the auction are also super important.  
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/features.png)
+
+
 ## Translating model probabilties to expected values
 
 We now have an accurate model for predicting the probability that an auction will end. But what does it mean that the model says there is a 70% chance of the auction ending.  Can we use that information.

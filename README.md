@@ -29,7 +29,7 @@ The output of the machine learning model is simple:  0: Do not bid on this aucti
 
 The features used can be divided into 3 categories:
 
-  - Auction Level Features.
+  - __Auction Level Features__.
        - Value of the Item Being Sold
        - Type of the Item Being Sold
        - Time Of Day
@@ -38,17 +38,22 @@ The features used can be divided into 3 categories:
        
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/auctionlevel.png)
 Auction Level Features
-       
-  - In-Auction User Features:
-       These are features that relate to one player in the auction that is NOT the current winner.  Examples include:
+   <br><br>
+   
+   
+  - __In-Auction User Features__:
+       These are features that relate to one player in the auction that is NOT the current winner. 
+       Examples include:
         - Bids So Far in this Auction
         - Are they using an autobidder
         - How far away was this user's last bid from the current winning price
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/user-inauction.png)
 In-Auction User Features
+<br><br>
 
-  - User's past history:
+
+  - __User's past history__:
        - These are features of each user in the auction from PREVIOUS auctions.  They include:
        - Average number of bids per auction
        - Percentage of time the user gives up after 1 bid
@@ -57,6 +62,8 @@ In-Auction User Features
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/past.png)
 Past User History Features
+<br><br>
+
 
 #### Dealing with unbalance
 
@@ -113,6 +120,9 @@ Here's the confusion matrix for a typical day.  We see that the model says to ig
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/cm.png)
 
+Here are the profits, per day, in the test set, if you were to only bid when the expected value is > 0.
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/profits.png)
 
 
 ## Data

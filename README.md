@@ -28,7 +28,39 @@ Bids: 8,374,298
 Distinct Users: 9,327
 Winners: 34,659
 
-### Approach:
+### Workflow:
+
+The Model Building was done on an Amazon Ec2.
+
+BuildTrackerScaper.py
+
+This file contains the class that downloads the raw HTML pages from BidTracker.info.
+
+ParseMongo.py
+
+This file contains the class the parses the raw HTML pages and extracts the relevant features and stores them in a MongoDB.
+
+MongoToPSQL.py
+
+This file migrates to the data from MongoDB to PSQL, storing the data in the data in two tables (bids, auctions).
+
+TransformSQL.py 
+
+This file transforms calls the new_transformations.sql file to transform the bids and auctions tables to the full_auction table which is in the form a machine learning model can understand.
+
+BuildModel.py
+This is the file which contains the Penny Auction class.  It is styled after the sklearn paradigm of init, transform, fit.  It takes an sklearn classifier so that different classifiers can be evaluated.
+
+EvaluateModel.py
+This class 
+
+BuildFinalModel.py
+
+This file trains builds the model on the whole data set up to the last data scraped to be deployed.
+
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/workflow.png)
+
 
 The output of the machine learning model is simple:  0: Do not bid on this auction,  1: Bid on this auction.  It is therefore a supervised, binary classification model. 
 

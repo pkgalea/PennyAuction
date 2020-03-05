@@ -16,6 +16,18 @@ This goal of this machine learning project is two fold:
   - The Live Auction Tracking seems to function well but needs more testing before deployment.
   
 ---  
+
+## Data
+
+Data to build the model was scraped from a website that tracks historical penny auction information with the owner's permission.  The raw html was stored into a Mongo Database.  A parser pulled the relevant information and stored the info into a PSQL Database.  
+
+Each individual datapoint is a single bid in the auction. 
+
+Bids: 8,374,298
+Distinct Users: 9,327
+Winners: 34,659  
+    
+  
   
 ## Model
 
@@ -29,7 +41,7 @@ The output of the machine learning model is simple:  0: Do not bid on this aucti
 
 The features used can be divided into 3 categories:
 
-  - __Auction Level Features__.
+  - __Auction Level Features__
        - Value of the Item Being Sold
        - Type of the Item Being Sold
        - Time Of Day
@@ -38,22 +50,21 @@ The features used can be divided into 3 categories:
        
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/auctionlevel.png)
 Auction Level Features
-   <br><br>
+   <br><br><br>
    
    
-  - __In-Auction User Features__:
-       These are features that relate to one player in the auction that is NOT the current winner. 
-       Examples include:
-        - Bids So Far in this Auction
-        - Are they using an autobidder
-        - How far away was this user's last bid from the current winning price
+   
+  - __In-Auction User Features__ (features for individual users in the auction)  
+    - Bids So Far in this Auction
+    - Are they using an autobidder
+    - How far away was this user's last bid from the current winning price
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/user-inauction.png)
 In-Auction User Features
-<br><br>
+<br><br><br>
 
 
-  - __User's past history__:
+  - __User's past history__ (features for how a user has behaved in the past)
        - These are features of each user in the auction from PREVIOUS auctions.  They include:
        - Average number of bids per auction
        - Percentage of time the user gives up after 1 bid
@@ -96,7 +107,7 @@ adjusted probability = win_probs/(win_probs + lose_probs)
 
 This will give more accurate probabilities to the actual probability of getting a win.
 
-#### Expected Value
+## Expected Value
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/ev.png)
 
@@ -104,7 +115,7 @@ To calculate the expected value we use the adjusted probability from the model a
 
 Now the question of when to bid is easy.  It's simply a question of is the expected value positive or not.
 
-#### Profit as a metric
+## Profit as a metric
 
 Now we can use these expected values to calcuate our profit on unseen data.  By going through the Test set and adding up the profits or losses when the expected value is greater than 0, we get an idea of how our model will do.
 
@@ -125,15 +136,6 @@ Here are the profits, per day, in the test set, if you were to only bid when the
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/profits.png)
 
 
-## Data
-
-Data to build the model was scraped from a website that tracks historical penny auction information with the owner's permission.  The raw html was stored into a Mongo Database.  A parser pulled the relevant information and stored the info into a PSQL Database.  
-
-Each individual datapoint is a single bid in the auction. 
-
-Bids: 8,374,298
-Distinct Users: 9,327
-Winners: 34,659
 
 ## Workflow:
 
@@ -195,5 +197,3 @@ Uses pyshark to sniff web traffic from QuiBids.  This prevents having to send ma
 ### Future Work
 
 Because the initial Random Forest model performed so well, I decided to focus on the real-time appication instead.  There is probably a lot of lift to attain by trying some more complicated models.  
-
-

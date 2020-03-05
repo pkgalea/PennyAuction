@@ -1,18 +1,19 @@
 # Penny Auction Bet Optimizer  
-<br><br>
+
+
 ## Abstract
 
 QuiBids (http://www.quibids.com/) is website where items are sold for ridiculously cheap amounts, but there is a catch.  Users pay a set amount for packs "bids" ($.40 per bid).  Items start at 1 penny.  For every bid, the price of the auction goes up by 1 cent and 10 seconds are added to the clock. If the clock runs out, the winner (the final bidder) is allowed to purchase the item for a (usually) ridiculously cheap price.  The site makes money by selling the bid packs
 
 This goal of this machine learning project is two fold:
 
-  1) Train a model to predict when an auction is going to end based upon auction data, current player actions, and past player history.
-  2) Live Auction Tracking that feeds auction information to the model in real-time.  The model will return the expected value.
+  -Train a model to predict when an auction is going to end based upon auction data, current player actions, and past player history.
+  -Live Auction Tracking that feeds auction information to the model in real-time.  The model will return the expected value.
   
 ## Results
 
-  1) The model to predict when an auction will end performed very well on unseen data. 
-  2) The Live Auction Tracking seems to function well but needs testing.
+  -The model to predict when an auction will end performed very well on unseen data. 
+  -The Live Auction Tracking seems to function well but needs more testing before deployment.
   
 ---  
   
@@ -24,7 +25,7 @@ The general idea is to build a model that returns a probability that the auction
 
 The output of the machine learning model is simple:  0: Do not bid on this auction,  1: Bid on this auction.  It is therefore a supervised, binary classification model. 
 
-### Features
+#### Features
 
 The features used can be divided into 3 categories:
 
@@ -116,11 +117,23 @@ This file trains builds the model on the whole data set up to the last data scra
 
 ## Live Auction Tracker
 
-The live auction tracker uses a selenium to open up upcoming auctions in chrome a few seconds before they are scheduled to begin.  It then returns an expected value if you were to be the NEXT bidder in the auction for both 
+The live auction tracker uses a selenium to open up upcoming auctions in chrome a few seconds before they are scheduled to begin.  It then returns 2 different expected values:
 
-### The model
+  -Expected Value if user places an auto-bid
+  -Expected Value if user places a single bid
 
-To deal with the unbalanced data set, I I chose the random forest model becuase of it's resistance
+The Live auction Tracker consists of the following files:
+
+```QuiBidsSniffer.py```  
+
+Uses pyshark to sniff web traffic from QuiBids.  This prevents having to send many requests to quibids and instead just "watch" as the auction goes by.
+
+```Upcoming.py``` Scrapes BidTracker to see which auctions are coming up and writes them to a mongo db.  Also opens up the auction in Chrome using selenium when the auction time is near.
+
+```LiveAuctionProcessor.py```  Processes the live auction file stored by the sniffer and returns an expected value
+
+```application.py```  The Flask app that shows the live auctions
+
 
 ### Future Work
 

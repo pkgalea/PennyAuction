@@ -14,6 +14,8 @@ This goal of this machine learning project is two fold:
   1) The model to predict when an auction will end performed very well on unseen data. 
   2) The Live Auction Tracking seems to function well but needs testing.
   
+---  
+  
 ## Approach
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/auctionlevel.png)
@@ -30,8 +32,11 @@ Winners: 34,659
 
 ## Workflow:
 
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/workflow.png)
+
+
 ### Model Building
-The Model Building was done on an Amazon Ec2.
+The Model Building was done on an Amazon Ec2.  The downloaded data lives on an EC2 instance and the downloading, parsing, transforming and model building can be run with a single script.
 
 BuildTrackerScaper.py
 
@@ -53,14 +58,11 @@ BuildModel.py
 This is the file which contains the Penny Auction class.  It is styled after the sklearn paradigm of init, transform, fit.  It takes an sklearn classifier so that different classifiers can be evaluated.
 
 EvaluateModel.py
-This class 
+This class evaluates the diffrent models, using netprofit as a metric.
 
 BuildFinalModel.py
 
 This file trains builds the model on the whole data set up to the last data scraped to be deployed.
-
-
-![image](https://github.com/pkgalea/PennyAuction/blob/master/images/workflow.png)
 
 
 The output of the machine learning model is simple:  0: Do not bid on this auction,  1: Bid on this auction.  It is therefore a supervised, binary classification model. 
@@ -75,25 +77,31 @@ The features used can be divided into 3 categories:
        Current Bid Price
        Number of users in the auction
        
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/auctionlevel.png)
+Auction Level Features
+       
 2) In-Auction User Features:
        These are features that relate to one player in the auction that is NOT the current winner.  Examples include:
        Bids So Far in this Auction
        Are they using an autobidder
        How far away was this user's last bid from the current winning price
- 
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/user-inauction.png)
+In-Auction User Features
+
 3) User's past history:
        These are features of each user in the auction from PREVIOUS auctions.  They include:
        Average number of bids per auction
        Percentage of time the user gives up after 1 bid
        Percentage of time the user overbids on an item.
        Percentage of time the user uses a Bid-O-Matic
-      
 
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/past.png)
+Past User History Features
 
-### Live Auction Tracker
+## Live Auction Tracker
 
-The eventual plan is to build a live, threaded application that can monitor auctions as they occur and return an expected profit for if the user places a bid at the given moment. 
-
+The live auction tracker uses a selenium to open up upcoming auctions in chrome a few seconds before they are scheduled to begin.  It then returns an expected value if you were to be the NEXT bidder in the auction for both 
 
 ### The model
 

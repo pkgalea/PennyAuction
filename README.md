@@ -1,18 +1,19 @@
 # Penny Auction Bet Optimizer  
-<br><br>
+
+
 ## Abstract
 
 QuiBids (http://www.quibids.com/) is website where items are sold for ridiculously cheap amounts, but there is a catch.  Users pay a set amount for packs "bids" ($.40 per bid).  Items start at 1 penny.  For every bid, the price of the auction goes up by 1 cent and 10 seconds are added to the clock. If the clock runs out, the winner (the final bidder) is allowed to purchase the item for a (usually) ridiculously cheap price.  The site makes money by selling the bid packs
 
 This goal of this machine learning project is two fold:
 
-  1) Train a model to predict when an auction is going to end based upon auction data, current player actions, and past player history.
-  2) Live Auction Tracking that feeds auction information to the model in real-time.  The model will return the expected value.
+  - Train a model to predict when an auction is going to end based upon auction data, current player actions, and past player history.
+  - Live Auction Tracking that feeds auction information to the model in real-time.  The model will return the expected value.
   
 ## Results
 
-  1) The model to predict when an auction will end performed very well on unseen data. 
-  2) The Live Auction Tracking seems to function well but needs testing.
+  - The model to predict when an auction will end performed very well on unseen data. 
+  - The Live Auction Tracking seems to function well but needs more testing before deployment.
   
 ---  
   
@@ -20,52 +21,97 @@ This goal of this machine learning project is two fold:
 
 The general idea is to build a model that returns a probability that the auction will end at any given point.  This will later be used to evaluate the expected value of I were to be the NEXT bidder.
 
-### Output
+#### Output
 
 The output of the machine learning model is simple:  0: Do not bid on this auction,  1: Bid on this auction.  It is therefore a supervised, binary classification model. 
 
-### Features
+#### Features
 
 The features used can be divided into 3 categories:
 
-1) Auction Level Features.
-       Value of the Item Being Sold
-       Type of the Item Being Sold
-       Time Of Day
-       Current Bid Price
-       Number of users in the auction
+  - Auction Level Features.
+       - Value of the Item Being Sold
+       - Type of the Item Being Sold
+       - Time Of Day
+       - Current Bid Price
+       - Number of users in the auction
        
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/auctionlevel.png)
 Auction Level Features
        
-2) In-Auction User Features:
+  - In-Auction User Features:
        These are features that relate to one player in the auction that is NOT the current winner.  Examples include:
-       Bids So Far in this Auction
-       Are they using an autobidder
-       How far away was this user's last bid from the current winning price
+        - Bids So Far in this Auction
+        - Are they using an autobidder
+        - How far away was this user's last bid from the current winning price
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/user-inauction.png)
 In-Auction User Features
 
-3) User's past history:
-       These are features of each user in the auction from PREVIOUS auctions.  They include:
-       Average number of bids per auction
-       Percentage of time the user gives up after 1 bid
-       Percentage of time the user overbids on an item.
-       Percentage of time the user uses a Bid-O-Matic
+  - User's past history:
+       - These are features of each user in the auction from PREVIOUS auctions.  They include:
+       - Average number of bids per auction
+       - Percentage of time the user gives up after 1 bid
+       - Percentage of time the user overbids on an item.
+       - Percentage of time the user uses a Bid-O-Matic
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/past.png)
 Past User History Features
 
-## Dealing with unbalance
+#### Dealing with unbalance
 
 The data is very unbalanced with only .41% positive values.  To account for this I used the ```imbalanced-learn``` library and random undersampling.
 
 I tried serveral ANN's with Keras, but the best model ending up being a Random Forest Classifier with undersampling of 2 to 1 Majority to Minority class and 200 evaluators.
 
+#### Model Performance
+
 The Roc curve indicates that the model performed quite well, with an area under the curve of .82
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/roc.png)
+
+
+## Translating model probabilties to expected values
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/roc.png)
+
+We now have an accurate model for predicting the probability that an auction will end. But what does it mean that the model says there is a 70% chance of the auction ending.  Can we use that information.
+
+The first thing to remember is that that is coming from an undersampled data set. So the probability of winning is MUCH lower than that.  The key is to first adjust for the undersampling.
+
+true_ratio = (#wins in full train set)/(# of bids in full train set)
+sampled_ratio = (#wins in full train set)/(# of bids in full train set)
+
+prob x true_ratio/sampled_ratio
+-------------------------------
+prob x true_ratio/sampled_ratio + (1 - prob) * (1-true_ratio)/(1-sampled_ratio)
+
+This will give more accurate probabilities to the actual probability of getting a win.
+
+#### Expected Value
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/ev.png)
+
+To calculate the expected value we use the adjusted probability from the model and look at the profit we would win if we were to win now and subtract $.40 for the bid.
+
+Now the question of when to bid is easy.  It's simply a question of is the expected value positive or not.
+
+#### Profit as a metric
+
+Now we can use these expected values to calcuate our profit on unseen data.  By going through the Test set and adding up the profits or losses when the expected value is greater than 0, we get an idea of how our model will do.
+
+The good news is that the expected and actual values in the test set correlate incredibly well with the training set.
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/ev_vs_actual.png)
+
+So, how often do we bet. The answer is very rarely:
+
+
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/evdensity.png)
+
+
+
+
 
 ## Data
 
@@ -116,11 +162,23 @@ This file trains builds the model on the whole data set up to the last data scra
 
 ## Live Auction Tracker
 
-The live auction tracker uses a selenium to open up upcoming auctions in chrome a few seconds before they are scheduled to begin.  It then returns an expected value if you were to be the NEXT bidder in the auction for both 
+The live auction tracker uses a selenium to open up upcoming auctions in chrome a few seconds before they are scheduled to begin.  It then returns 2 different expected values:
 
-### The model
+  -Expected Value if user places an auto-bid
+  -Expected Value if user places a single bid
 
-To deal with the unbalanced data set, I I chose the random forest model becuase of it's resistance
+The Live auction Tracker consists of the following files:
+
+```QuiBidsSniffer.py```  
+
+Uses pyshark to sniff web traffic from QuiBids.  This prevents having to send many requests to quibids and instead just "watch" as the auction goes by.
+
+```Upcoming.py``` Scrapes BidTracker to see which auctions are coming up and writes them to a mongo db.  Also opens up the auction in Chrome using selenium when the auction time is near.
+
+```LiveAuctionProcessor.py```  Processes the live auction file stored by the sniffer and returns an expected value
+
+```application.py```  The Flask app that shows the live auctions
+
 
 ### Future Work
 

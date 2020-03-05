@@ -73,18 +73,19 @@ The Roc curve indicates that the model performed quite well, with an area under 
 
 ## Translating model probabilties to expected values
 
-![image](https://github.com/pkgalea/PennyAuction/blob/master/images/roc.png)
-
 We now have an accurate model for predicting the probability that an auction will end. But what does it mean that the model says there is a 70% chance of the auction ending.  Can we use that information.
 
 The first thing to remember is that that is coming from an undersampled data set. So the probability of winning is MUCH lower than that.  The key is to first adjust for the undersampling.
 
 true_ratio = (#wins in full train set)/(# of bids in full train set)
+
 sampled_ratio = (#wins in full train set)/(# of bids in full train set)
 
-prob x true_ratio/sampled_ratio
--------------------------------
-prob x true_ratio/sampled_ratio + (1 - prob) * (1-true_ratio)/(1-sampled_ratio)
+win_probs = prob x true_ratio/sampled_ratio prob 
+
+lose_probs = (1 - prob) * (1-true_ratio)/(1-sampled_ratio)
+
+adjusted probability = win_probs/(win_probs + lose_probs)
 
 This will give more accurate probabilities to the actual probability of getting a win.
 
@@ -106,10 +107,11 @@ The good news is that the expected and actual values in the test set correlate i
 
 So, how often do we bet. The answer is very rarely:
 
-
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/evdensity.png)
 
+Here's the confusion matrix for a typical day.  We see that the model says to ignore nearly 60,000 bidding opportunities.  However out of the approximately 6,800 opportunities where the model says to bid, you win 168 auctions.  And that's enough for some big profits.
 
+![image](https://github.com/pkgalea/PennyAuction/blob/master/images/cm.png)
 
 
 

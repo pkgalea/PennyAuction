@@ -1,6 +1,6 @@
 # Penny Auction Bet Optimizer  
 <br><br>
-### Abstract
+## Abstract
 
 QuiBids (http://www.quibids.com/) is website where items are sold for ridiculously cheap amounts, but there is a catch.  Users pay a set amount for packs "bids" ($.40 per bid).  Items start at 1 penny.  For every bid, the price of the auction goes up by 1 cent and 10 seconds are added to the clock. If the clock runs out, the winner (the final bidder) is allowed to purchase the item for a (usually) ridiculously cheap price.  The site makes money by selling the bid packs
 
@@ -9,16 +9,16 @@ This goal of this machine learning project is two fold:
   1) Train a model to predict when an auction is going to end based upon auction data, current player actions, and past player history.
   2) Live Auction Tracking that feeds auction information to the model in real-time.  The model will return the expected value.
   
-### Results
+## Results
 
   1) The model to predict when an auction will end performed very well on unseen data. 
   2) The Live Auction Tracking seems to function well but needs testing.
   
-### Approach
+## Approach
 
 ![image](https://github.com/pkgalea/PennyAuction/blob/master/images/auctionlevel.png)
   
-### Data
+## Data
 
 Data to build the model was scraped from a website that tracks historical penny auction information with the owner's permission.  The raw html was stored into a Mongo Database.  A parser pulled the relevant information and stored the info into a PSQL Database.  
 
@@ -28,8 +28,9 @@ Bids: 8,374,298
 Distinct Users: 9,327
 Winners: 34,659
 
-### Workflow:
+## Workflow:
 
+### Model Building
 The Model Building was done on an Amazon Ec2.
 
 BuildTrackerScaper.py

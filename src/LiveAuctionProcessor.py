@@ -17,7 +17,7 @@ class LiveAuctionProcessor:
         self.tracking_collection = db["tracking"]
         self.bh = []
         self.prev_user_info = prev_user_info
-        self.my_username = "AAAAAAAHH"
+        self.my_username = "AAAAAAHH"
         self.penny_model = penny_model
         self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"]}
         self.tracking_collection.insert_one({"_id": self.auction_id, "data": self.out_dict})
@@ -70,6 +70,7 @@ class LiveAuctionProcessor:
         for r in self.bh[-1::-1]:
             username = r['username']
             cur_bid = r['bid']
+            print (r['bid'], len(self.bh))
             is_bidomatic = r['is_bidomatic']
             if username == self.my_username:
                 break
@@ -131,7 +132,13 @@ class LiveAuctionProcessor:
             if ("auction_complete" in u.keys()):
                 return False
             else:
-                self.bh.append({"bid":u["bid"], "username":u["username"], "is_bidomatic": u["is_bidomatic"]})
+                my_last_bid = len(self.bh)
+                new_bh = u["bh"]
+                newest_bid = new_bh[0]["bid"]
+                bids_to_get = newest_bid - my_last_bid
+                print (newest_bid, my_last_bid)
+                for a in new_bh[bids_to_get-1::-1]:
+                    self.bh.append({"bid":a["bid"], "username":a["username"], "is_bidomatic": a["is_bidomatic"]})
                 self.sniffed_collection.delete_one({"auction_id":self.auction_id, "bid":u["bid"]})
         return True
 

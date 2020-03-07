@@ -27,7 +27,10 @@ class QuiBidsSniffer():
         """
         auction_id = list(auction.keys())[0]
         auction = auction[auction_id]
-        
+        if (not isinstance(auction, dict)):
+            print ("not a dict", auction)
+            return
+
         if ('bh' in auction.keys()):
 
             if ('s' in auction.keys()):
@@ -35,15 +38,16 @@ class QuiBidsSniffer():
                 auction_dict = {"auction_id":auction_id, "auction_complete": True}
                 self.sniffed_collection.insert_one(auction_dict) 
             else:
-                bh = auction['bh'][0]
-                bid = bh['id']
-                username = bh['u']
-                is_bidomatic = bh['t']==2
-                print("*****************")
-                print(auction_id, bid, username, is_bidomatic)
-                auction_dict = {"auction_id":auction_id, "bid": bid, "username":username, "is_bidomatic":is_bidomatic}
-                self.sniffed_collection.insert_one(auction_dict)    
-                print("*****************")
+                auction_dict = {"auction_id":auction_id, "bid":auction['bh'][0]["id"], "bh":[]}
+                for bh in auction['bh']:
+                    bid = bh['id']
+                    username = bh['u']
+                    is_bidomatic = bh['t']==2
+                    print("*****************")
+                    print(auction_id, bid, username, is_bidomatic)
+                    auction_dict["bh"].append({"bid": bid, "username":username, "is_bidomatic":is_bidomatic})  
+                    print("*****************")
+                self.sniffed_collection.insert_one(auction_dict)  
         else:
             print(auction)
 
@@ -71,11 +75,12 @@ class QuiBidsSniffer():
                             if ("lb_id" in l.get("response_for_uri")):
                                 auction = l.get("file_data")
                                 if (auction):
-                                    auction = auction.split("(")[1].split(")")[0]
-                                    auction = json.loads(auction)
-                                    auction= auction['a']
-                                    if (auction):
-                                        self.process_auction(auction)
+                                    if ("(" in auction):
+                                        auction = auction.split("(")[1].split(")")[0]
+                                        auction = json.loads(auction)
+                                        auction= auction['a']
+                                        if (auction):
+                                            self.process_auction(auction)
 
 if __name__ == "__main__": 
     qbs = QuiBidsSniffer()

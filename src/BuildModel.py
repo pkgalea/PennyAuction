@@ -105,7 +105,7 @@ class PennyModel:
         X["fee"]=[0 if x == 0 else (1 if x < 50 else 1.99) for x in X["cardvalue"]]
         X["time_of_day"]=[x.hour*60+x.minute for x in X["auctiontime"]]
         X["is_weekend"] = [x.weekday() >=6 for x in X["auctiontime"]]
-
+        return X
 
     def internal_fit (self, X, y):
         """

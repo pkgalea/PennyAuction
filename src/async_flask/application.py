@@ -48,9 +48,9 @@ def get_upcoming_string(upcoming):
     upcoming_str = ""
     for u in upcoming:
         if (u["cardtype"] == "None"):
-            upcoming_str  += str(u["auctionid"]) + ": Bid Pack "  + str(u["bidvalue"]) + " in " + str(u["seconds_left"]) + " sec<br>"
+            upcoming_str  +=  str(u["seconds_left"]) + ": Bid Pack "  + str(u["bidvalue"]) + " (" +str(u["auctionid"])  + ")<br>"
         else:
-            upcoming_str  += str(u["auctionid"]) + ": " + u["cardtype"] + " $" + str(u["cardvalue"]) + " in " + str(u["seconds_left"]) + " sec<br>"
+            upcoming_str  += str(u["seconds_left"]) + ": " + u["cardtype"] + " $" + str(u["cardvalue"]) + " (" + str(u["auctionid"]) + ")<br>"
     return upcoming_str
 
 def create_auction_table(a_data, auction_id):

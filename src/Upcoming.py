@@ -37,6 +37,13 @@ def process_auction(auction_dict, handle):
         time.sleep(.5)
 
 
+def set_viewport_size(driver, width, height):
+    window_size = driver.execute_script("""
+        return [window.outerWidth - window.innerWidth + arguments[0],
+          window.outerHeight - window.innerHeight + arguments[1]];
+        """, width, height)
+    driver.set_window_size(*window_size)
+
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 db = myclient["penny"]
 upcoming_collection = db["upcoming"]
@@ -52,10 +59,12 @@ mp = MongoParser()
 #driver = webdriver.Chrome()
 #driver.get ("http://quibids.com/en/")
 options = Options()
-options.headless = True
+#options.headless = True
 driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
 driver.set_window_position(0, 0)
 driver.set_window_size(1024, 768)
+set_viewport_size(driver, 2000, 2000)
+
 driver.get("http://quibids.com/en/")
 time.sleep(2)
 
@@ -67,13 +76,13 @@ while (True):
     print(upcoming_auctions[0])
     for auction in upcoming_auctions:
         auction["fee"] = 0 if auction["cardvalue"] == 0 else (1 if auction["cardvalue"] < 50 else 1.99)
-        if (auction["seconds_left"] < 350):
+        if (auction["seconds_left"] < 800):
             upcoming_auctions.pop()
             launched_auction_ids.append(auction["auctionid"])
             print(auction["auctionid"])
             elems = driver.find_elements_by_id(auction["auctionid"])
             for element in elems:
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                driver.execute_script("window.scrollTo(0, 400);")
                 link = element.find_elements_by_tag_name('a')[0]
                 ActionChains(driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
                 break

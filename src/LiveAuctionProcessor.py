@@ -70,7 +70,6 @@ class LiveAuctionProcessor:
         for r in self.bh[-1::-1]:
             username = r['username']
             cur_bid = r['bid']
-            print (r['bid'], len(self.bh))
             is_bidomatic = r['is_bidomatic']
             if username == self.my_username:
                 break
@@ -88,15 +87,8 @@ class LiveAuctionProcessor:
                 my_row["bom_streak_on"] = False
         return user_dict
 
-
-    def process(self):
-        user_cols = ["username", "bids_so_far", "bom_bids_so_far", "distance", "is_bidomatic", "bom_streak"]
-        prev_cols = ['prev_auction_count', 'prev_overbid', 'prev_giveup_one', 'prev_give_before_six', 'prev_wins', 'prev_bids', 'prev_bom_bids']
-        self.add_auction_level_fields()
-        user_dict = self.process_bid_history()
-                
-        prev_4_users_len = min(4, len(user_dict))    
-        for i in range(prev_4_users_len):
+    def get_prev_user_info(self, user_dict, user_dict_len, prev_cols):   
+        for i in range(user_dict_len):
             str_i = str(i)
             ud = user_dict[i]
             prev_info = self.prev_user_info.get_users_previous_info(ud["username"])
@@ -114,12 +106,25 @@ class LiveAuctionProcessor:
             for k in ud:
                 self.auction_dict[k+str_i] = ud[k]
 
-        for i in range (prev_4_users_len,4):
+
+    def fill_in_info_if_less_than_4_users (self, user_dict_len, user_cols, prev_cols):
+        for i in range (user_dict_len,4):
             for c in prev_cols + user_cols:
                 self.auction_dict[c+str(i)] = np.nan
             self.auction_dict["is_bidomatic"+str(i)] = None
             self.auction_dict["perc_to_bin"+str(i)] = np.nan
             self.auction_dict["prev_is_new_user" + str(i)] = np.nan
+       
+
+    def process(self):
+        user_cols = ["username", "bids_so_far", "bom_bids_so_far", "distance", "is_bidomatic", "bom_streak"]
+        prev_cols = ['prev_auction_count', 'prev_overbid', 'prev_giveup_one', 'prev_give_before_six', 'prev_wins', 'prev_bids', 'prev_bom_bids']
+        self.add_auction_level_fields()
+        user_dict = self.process_bid_history()
+        user_dict_len = min(4, len(user_dict)) 
+                
+        self.get_prev_user_info(user_dict, user_dict_len, prev_cols)
+        self.fill_in_info_if_less_than_4_users(user_dict_len, user_cols, prev_cols)
             
         self.auction_dict["prevusers"] = len(user_dict)
         return {k:[v] for k, v in self.auction_dict.items()} 
@@ -136,7 +141,6 @@ class LiveAuctionProcessor:
                 new_bh = u["bh"]
                 newest_bid = new_bh[0]["bid"]
                 bids_to_get = newest_bid - my_last_bid
-                print (newest_bid, my_last_bid)
                 for a in new_bh[bids_to_get-1::-1]:
                     self.bh.append({"bid":a["bid"], "username":a["username"], "is_bidomatic": a["is_bidomatic"]})
                 self.sniffed_collection.delete_one({"auction_id":self.auction_id, "bid":u["bid"]})
@@ -175,6 +179,8 @@ class LiveAuctionProcessor:
         self.out_dict["manual_ev"] = manual_ev
         self.out_dict["bid"] = bid-1
         self.out_dict["last_user"]= last_user
+        self.out_dict["tracking_OK"] = len(self.bh)== 0 or self.bh[-1]["bid"] == len(self.bh):
+            
         self.tracking_collection.update_one({"_id":self.auction_id}, {"$set": {"data": self.out_dict}})
 
 

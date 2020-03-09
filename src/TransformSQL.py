@@ -27,7 +27,7 @@ class SQLAuctionTransformer:
                 list(str): A list of dates
         """
         sdate = date(2019, 9, 20)   # start date
-        edate = date(2020, 3, 10)   # end date
+        edate = date(2020, 3, 12)   # end date
 
         delta = edate - sdate       # as timedelta
 

@@ -10,6 +10,7 @@ from  BidTrackerScraper import BidTrackerScraper
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 from LiveAuctionProcessor import LiveAuctionProcessor
 import pickle
 import pandas as pd
@@ -53,6 +54,8 @@ mp = MongoParser()
 options = Options()
 options.headless = True
 driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
+driver.set_window_position(0, 0)
+driver.set_window_size(1024, 768)
 driver.get("http://quibids.com/en/")
 time.sleep(2)
 
@@ -61,7 +64,7 @@ while (True):
     upcoming_auctions =  mp.parse_upcoming_auction_page(bts.scrape_upcoming_auctions())
     upcoming_auctions = [ua for ua in upcoming_auctions if ua["auctionid"] not in launched_auction_ids and (ua["cardtype"]=="None" or ua["cardvalue"]>=25)] 
     upcoming_collection.update_one ({"_id": "upcoming"}, {"$set": {"auctions": upcoming_auctions}})
-    
+    print(upcoming_auctions[0])
     for auction in upcoming_auctions:
         auction["fee"] = 0 if auction["cardvalue"] == 0 else (1 if auction["cardvalue"] < 50 else 1.99)
         if (auction["seconds_left"] < 350):
@@ -70,6 +73,7 @@ while (True):
             print(auction["auctionid"])
             elems = driver.find_elements_by_id(auction["auctionid"])
             for element in elems:
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 link = element.find_elements_by_tag_name('a')[0]
                 ActionChains(driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
                 break

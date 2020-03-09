@@ -1,6 +1,10 @@
 from selenium import webdriver
-options = webdriver.ChromeOptions()
-options.add_argument('headless')
-driver = webdriver.Chrome(options=options)
+from selenium.webdriver.firefox.options import Options
 
-driver.get("http://quibids.com/en/auction-333427488US-C1704-25-amazon-gift-card")
+options = Options()
+options.headless = True
+driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
+driver.get("http://quibids.com/en/auction-798156855US-C1771183-150-amazon-gift-card")
+print ("Headless Firefox Initialized")
+driver.quit()
+

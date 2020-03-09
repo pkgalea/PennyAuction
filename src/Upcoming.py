@@ -15,6 +15,7 @@ from LiveAuctionProcessor import LiveAuctionProcessor
 import pickle
 import pandas as pd
 import threading
+import os
 
 
 # TODO: Make this a class!
@@ -29,12 +30,14 @@ def process_auction(auction_dict, handle):
     lap = LiveAuctionProcessor(upcoming_auctions[0], prev_info, penny_model)
     while True:
         out_dict = lap.get_expected_value()
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(out_dict)
         if (not out_dict):
             driver.switch_to.window(handle)
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
             return   # auction is sold
-        time.sleep(.5)
+        time.sleep(1)
 
 
 def set_viewport_size(driver, width, height):
@@ -59,7 +62,7 @@ mp = MongoParser()
 #driver = webdriver.Chrome()
 #driver.get ("http://quibids.com/en/")
 options = Options()
-#options.headless = True
+options.headless = True
 driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
 driver.set_window_position(0, 0)
 driver.set_window_size(1024, 768)
@@ -76,7 +79,7 @@ while (True):
     print(upcoming_auctions[0])
     for auction in upcoming_auctions:
         auction["fee"] = 0 if auction["cardvalue"] == 0 else (1 if auction["cardvalue"] < 50 else 1.99)
-        if (auction["seconds_left"] < 800):
+        if (auction["seconds_left"] < 350):
             upcoming_auctions.pop()
             launched_auction_ids.append(auction["auctionid"])
             print(auction["auctionid"])
@@ -90,7 +93,7 @@ while (True):
             t1.start() 
 
     #print(upcoming_auctions)
-    time.sleep(1)
+    time.sleep(5)
     
 
 

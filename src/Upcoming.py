@@ -43,7 +43,7 @@ class Upcoming:
         #driver = webdriver.Chrome()
         #driver.get ("http://quibids.com/en/")
         options = Options()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
         self.driver.set_window_position(0, 0)
         self.driver.set_window_size(1024, 768)
@@ -80,9 +80,9 @@ class Upcoming:
                 del self.live_auction_dict[auction_dict["auctionid"]]
                 self.driver.switch_to.window(handle)
                 self.driver.close()
-                self.driver.switch_to.window(driver.window_handles[0])
+                self.driver.switch_to.window(self.driver.window_handles[0])
                 return   # auction is sold
-            time.sleep(1)
+            time.sleep(.1)
 
 
     def set_viewport_size(self, driver, width, height):
@@ -169,11 +169,11 @@ class Upcoming:
         self.launch_driver()
         t1 = threading.Thread(target=self.check_for_new_auctions)
         t1.start()
-        t2 = threading.Thread(target=self.start_sniffer)
-        t2.start()
+       # t2 = threading.Thread(target=self.start_sniffer)
+       # t2.start()
         while True:
             self.print_stuff()
-            time.sleep(1)
+            time.sleep(.1)
 
  
 if __name__ == "__main__": 

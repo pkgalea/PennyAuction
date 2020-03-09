@@ -179,7 +179,7 @@ class LiveAuctionProcessor:
         self.out_dict["manual_ev"] = manual_ev
         self.out_dict["bid"] = bid-1
         self.out_dict["last_user"]= last_user
-        self.out_dict["tracking_OK"] = len(self.bh)== 0 or self.bh[-1]["bid"] == len(self.bh):
+        self.out_dict["tracking_OK"] = len(self.bh)== 0 or self.bh[-1]["bid"] == len(self.bh)
             
         self.tracking_collection.update_one({"_id":self.auction_id}, {"$set": {"data": self.out_dict}})
 

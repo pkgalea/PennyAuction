@@ -48,8 +48,12 @@ bts.login(2)
 mp = MongoParser()
 
 
-driver = webdriver.Chrome()
-driver.get ("http://quibids.com/en/")
+#driver = webdriver.Chrome()
+#driver.get ("http://quibids.com/en/")
+options = Options()
+options.headless = True
+driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
+driver.get("http://quibids.com/en/")
 time.sleep(2)
 
 launched_auction_ids = []

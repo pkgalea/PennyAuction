@@ -123,7 +123,7 @@ class Upcoming:
     
     def print_auctions(self):
         dict_copy = self.live_auction_dict.copy()
-        for auction_id, data in dict_copy:
+        for auction_id, data in dict_copy.items():
             auction_str  = auction_id 
             if (data["cardtype"] == "None"):
                 auction_str  += ": Bid Pack "  + str(data["bidvalue"]) 

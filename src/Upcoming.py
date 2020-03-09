@@ -122,7 +122,8 @@ class Upcoming:
             time.sleep(5)
     
     def print_auctions(self):
-        for auction_id, data in self.live_auction_dict.items():
+        dict_copy = self.live_auction_dict.copy()
+        for auction_id, data in dict_copy:
             auction_str  = auction_id 
             if (data["cardtype"] == "None"):
                 auction_str  += ": Bid Pack "  + str(data["bidvalue"]) 

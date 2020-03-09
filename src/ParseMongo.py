@@ -58,14 +58,14 @@ class MongoParser:
             elif "Four" in auction_title:
                 card_value = "60"
             else:
-                print("What is this?")
+                #print("What is this?")
                 return None, None, None, None
  
             bid_value = str(int((float(cash_value) - int(card_value))*2.5))
             card_value = card_value
             return cash_value, card_value, card_type, bid_value
         else:
-            print("what is this?") 
+            #print("what is this?") 
             return None, None, None, None
         return cash_value, card_value, card_type, bid_value
 

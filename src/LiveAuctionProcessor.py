@@ -49,7 +49,7 @@ class LiveAuctionProcessor:
     def add_auction_level_fields(self):
         self.auction_dict["idx"]=0
         self.auction_dict["is_winner"] = None
-        self.auction_dict["auctiontime"] = datetime.now()+ timedelta(hours=1)
+        self.auction_dict["auctiontime"] = datetime.now()+ timedelta(hours=-4)
         self.auction_dict["is_bidomatic"] = True
         self.auction_dict["bids_so_far"] = None
         self.auction_dict["username"] = self.my_username

@@ -5,6 +5,7 @@ import PrevInfo
 import pandas as pd
 import numpy as np
 import json
+import os
 
 class LiveAuctionProcessor:
 
@@ -154,24 +155,26 @@ class LiveAuctionProcessor:
         bom_proba =  self.penny_model.predict_proba_calibrated(df_out)[:,1][0]
         df_out["is_bidomatic"]=False
         manual_proba =  self.penny_model.predict_proba_calibrated(df_out)[:,1][0]
+
         if (len(self.bh) > 0):
-            #self.bh[-1]["proba"] = bom_proba
-            #print(bh[-1]["username"], bh[-1]["bid"], proba)
             bid = self.bh[-1]["bid"] + 1
             last_user = self.bh[-1]["username"]
         else:
             bid = 1
             last_user = "None yet"
-        #bh_len = len(bh)
-        #bids = [b["bid"] for b in bh]
-        #probs = [b["proba"] if "proba" in b.keys() else .5 for b in bh]
-        #print(bid)
+        filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
+        if not os.path.exists(filename):
+            df_out.to_csv(filename)
         potential_profit = self.auction_dict["cashvalue"] - self.auction_dict["fee"] - bid/100 - .40
         potential_loss = -.40
         bom_ev = potential_profit * bom_proba + potential_loss * (1-bom_proba)
         manual_ev = potential_profit * manual_proba + potential_loss * (1-manual_proba)
-
-
+        filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
+        if not os.path.exists(filename):
+            df_out.to_csv(filename)
+            f=open(filename, "a+")
+            f.write(f"{manual_proba}, {bom_proba}, {manual_ev}, {bom_ev}")
+            f.close()
         self.out_dict["potential_profit"] = potential_profit
         self.out_dict["bom_proba"] = bom_proba
         self.out_dict["manual_proba"] = manual_proba

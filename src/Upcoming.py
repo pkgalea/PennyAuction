@@ -43,7 +43,7 @@ class Upcoming:
         #driver = webdriver.Chrome()
         #driver.get ("http://quibids.com/en/")
         options = Options()
-        options.headless = True
+        options.headless = False
         self.driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
         self.driver.set_window_position(0, 0)
         self.driver.set_window_size(1024, 768)
@@ -63,7 +63,7 @@ class Upcoming:
         self.prev_info = pickle.load( open( "pi.pkl", "rb" ) )
         self.penny_model = pickle.load( open( "rf.pkl", "rb" ) )
 
-    def process_auction(self, auction_dict, handle):
+    def process_auction(self, auction_dict, auction_driver):
         """
             Takes the upcoming auction and launches a Live Auction Processror class.   Also closes the web page once it's done.
             Parameters:
@@ -73,16 +73,16 @@ class Upcoming:
         lap = LiveAuctionProcessor(auction_dict, self.prev_info, self.penny_model)
         while True:
             out_dict = lap.get_expected_value()
-       
+            auction_id = auction_dict["auctionid"]
            # print(out_dict)
-            self.live_auction_dict[auction_dict["auctionid"]] = out_dict
+            self.live_auction_dict[auction_id] = out_dict
             if (not out_dict):
-                del self.live_auction_dict[auction_dict["auctionid"]]
-                self.driver.switch_to.window(handle)
-                self.driver.close()
-                self.driver.switch_to.window(self.driver.window_handles[0])
+                print ("Closing " + auction_id)
+                del self.live_auction_dict[auction_id]
+                auction_driver.close()
+
                 return   # auction is sold
-            time.sleep(.1)
+            time.sleep(.5)
 
 
     def set_viewport_size(self, driver, width, height):
@@ -99,17 +99,33 @@ class Upcoming:
         #print(self.upcoming_auctions[0])
  
     def launch_auction(self, auction):
+        pre_launch_handles = self.driver.window_handles
         auction["fee"] = 0 if auction["cardvalue"] == 0 else (1 if auction["cardvalue"] < 50 else 1.99)
         self.upcoming_auctions.pop()
         self.launched_auction_ids.append(auction["auctionid"])
-        print(auction["auctionid"])
+        print("OPENING" + auction["auctionid"])
         elems = self.driver.find_elements_by_id(auction["auctionid"])
         for element in elems:
-            self.driver.execute_script("window.scrollTo(0, 400);")
+   #        self.driver.execute_script("window.scrollTo(0, 400);")
             link = element.find_elements_by_tag_name('a')[0]
-            ActionChains(self.driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
+            print(link.get_attribute('href'))
+            options = Options()
+            options.headless = False
+            auction_driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
+            auction_driver.get(link.get_attribute('href'))
+            time.sleep(2)
+
+   #         ActionChains(self.driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
             break
-        t1 = threading.Thread(target=self.process_auction, args=(auction,self.driver.window_handles[-1],))
+        #time.sleep(3)
+        #handle = -1
+        #for h in self.driver.window_handles:
+        #    print(h,pre_launch_handles)
+        #    if h not in pre_launch_handles:
+        #        print("found", h)
+        #        handle = h
+        #        break
+        t1 = threading.Thread(target=self.process_auction, args=(auction,auction_driver,))
         t1.start() 
 
 
@@ -121,15 +137,16 @@ class Upcoming:
                     self.launch_auction(auction)
             time.sleep(5)
     
-    def print_auctions(self):
+    def get_live_auctions_str(self):
         dict_copy = self.live_auction_dict.copy()
+        auction_str = ""
         for auction_id, data in dict_copy.items():
-            auction_str  = auction_id 
+            auction_str  += auction_id 
             if (data["cardtype"] == "None"):
                 auction_str  += ": Bid Pack "  + str(data["bidvalue"]) 
             else:
                 auction_str  += ": " + data["cardtype"] + " $" + str(data["cardvalue"])
-            print(auction_str)
+            
             mev = data["manual_ev"]
             bomev = data["bom_ev"]
             bid = data["bid"]
@@ -142,23 +159,26 @@ class Upcoming:
                 bomcolor = Fore.GREEN
             else:
                 bomcolor = Fore.RED
-            auction_str = f"          cur_bid:{bid} manual:{mcolor}{mev:.2f}{Style.RESET_ALL} bom:{bomcolor}{bomev:.2f}{Style.RESET_ALL} {tracking_OK}"
-            print(auction_str) 
+            auction_str += f"\n          cur_bid:{bid} manual:{mcolor}{mev:.2f}{Style.RESET_ALL} bom:{bomcolor}{bomev:.2f}{Style.RESET_ALL} {tracking_OK}\n"
+        return auction_str 
  
-    def print_upcoming_auctions(self):
+    def get_upcoming_auctions_str(self):
         upcoming_str = ""
         for ua in self.upcoming_auctions:
+            upcoming_str += str(ua["seconds_left"]//60) + "m " + str(ua["seconds_left"] % 60)  + "s :"
             if (ua["cardtype"] == "None"):
-                upcoming_str  +=  str(ua["seconds_left"]) + ": Bid Pack "  + str(ua["bidvalue"]) + " (" +str(ua["auctionid"])  + ")\n"
+                upcoming_str  +=  "Bid Pack "  + str(ua["bidvalue"]) + " (" +str(ua["auctionid"])  + ")\n"
             else:
-                upcoming_str  += str(ua["seconds_left"]) + ": " + ua["cardtype"] + " $" + str(ua["cardvalue"]) + " (" + str(ua["auctionid"]) + ")\n"
-        print(upcoming_str)
+                upcoming_str  +=  ua["cardtype"] + " $" + str(ua["cardvalue"]) + " (" + str(ua["auctionid"]) + ")\n"
+        return upcoming_str
 
     def print_stuff(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        self.print_auctions()
-        print()
-        self.print_upcoming_auctions()
+   #     os.system('cls' if os.name == 'nt' else 'clear')
+        live_auction_str = self.get_live_auctions_str()
+        upcoming_auction_str = self.get_upcoming_auctions_str()
+        f = open("display.txt", "w")
+        f.write(live_auction_str + "\n" + upcoming_auction_str)
+        f.close()   
 
     def start_sniffer(self):
         self.qbs.capture_auction()
@@ -174,7 +194,7 @@ class Upcoming:
        # t2.start()
         while True:
             self.print_stuff()
-            time.sleep(.1)
+            time.sleep(.5)
 
  
 if __name__ == "__main__": 

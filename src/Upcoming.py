@@ -24,7 +24,8 @@ from QuiBidsSniffer import QuiBidsSniffer
 # TODO: Make this a class!
 class Upcoming:
 
-    def __init__(self):
+    def __init__(self, headless=True):
+        self.headless = headless
         self.upcoming_collection = None
         self.tracking_collection = None
         self.prev_info = None
@@ -40,16 +41,10 @@ class Upcoming:
 
 
     def launch_driver(self):
-        #driver = webdriver.Chrome()
-        #driver.get ("http://quibids.com/en/")
         options = Options()
-        options.headless = False
-        self.driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
-        self.driver.set_window_position(0, 0)
-        self.driver.set_window_size(1024, 768)
-        self.set_viewport_size(self.driver, 2000, 2000)
-        self.driver.get("http://quibids.com/en/")
-        time.sleep(2)
+        options.headless = self.headless
+        driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
+        return driver
 
 
     def connect_to_mongo(self):
@@ -106,25 +101,12 @@ class Upcoming:
         print("OPENING" + auction["auctionid"])
         elems = self.driver.find_elements_by_id(auction["auctionid"])
         for element in elems:
-   #        self.driver.execute_script("window.scrollTo(0, 400);")
             link = element.find_elements_by_tag_name('a')[0]
-            print(link.get_attribute('href'))
-            options = Options()
-            options.headless = False
-            auction_driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
-            auction_driver.get(link.get_attribute('href'))
+            href = link.get_attribute('href')
+            auction_driver = self.launch_driver()
+            auction_driver.get(href)
             time.sleep(2)
-
-   #         ActionChains(self.driver).key_down(Keys.CONTROL).click(link).key_up(Keys.CONTROL).perform()
             break
-        #time.sleep(3)
-        #handle = -1
-        #for h in self.driver.window_handles:
-        #    print(h,pre_launch_handles)
-        #    if h not in pre_launch_handles:
-        #        print("found", h)
-        #        handle = h
-        #        break
         t1 = threading.Thread(target=self.process_auction, args=(auction,auction_driver,))
         t1.start() 
 
@@ -187,7 +169,8 @@ class Upcoming:
         self.bts.login(2)
         self.connect_to_mongo()
         self.load_pickles()
-        self.launch_driver()
+        self.driver = self.launch_driver()
+        self.driver.get("http://quibids.com/en/")
         t1 = threading.Thread(target=self.check_for_new_auctions)
         t1.start()
        # t2 = threading.Thread(target=self.start_sniffer)
@@ -198,7 +181,7 @@ class Upcoming:
 
  
 if __name__ == "__main__": 
-    upcoming = Upcoming()
+    upcoming = Upcoming(True)
     upcoming.run()
 
     

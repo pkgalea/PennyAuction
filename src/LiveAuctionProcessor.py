@@ -73,7 +73,7 @@ class LiveAuctionProcessor:
             cur_bid = r['bid']
             is_bidomatic = r['is_bidomatic']
             if username == self.my_username:
-                break
+                continue
             if (username not in found_users.keys()):
                 user_dict[cur_opponent]={"username":username, "bids_so_far": 0.0, "bom_bids_so_far": 0.0, "distance": float(bid-cur_bid), "is_bidomatic": is_bidomatic, "bom_streak": 0.0,  "bom_streak_on": True}
                 found_users[username] = cur_opponent
@@ -172,6 +172,7 @@ class LiveAuctionProcessor:
         filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
         if not os.path.exists(filename):
             df_out.to_csv(filename)
+            print("Here", manual_proba, bom_proba, manual_ev, bom_ev)
             f=open(filename, "a+")
             f.write(f"{manual_proba}, {bom_proba}, {manual_ev}, {bom_ev}")
             f.close()

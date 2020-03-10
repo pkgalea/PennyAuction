@@ -162,9 +162,6 @@ class LiveAuctionProcessor:
         else:
             bid = 1
             last_user = "None yet"
-        filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
-        if not os.path.exists(filename):
-            df_out.to_csv(filename)
         potential_profit = self.auction_dict["cashvalue"] - self.auction_dict["fee"] - bid/100 - .40
         potential_loss = -.40
         bom_ev = potential_profit * bom_proba + potential_loss * (1-bom_proba)

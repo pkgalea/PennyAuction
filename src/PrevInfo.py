@@ -32,7 +32,7 @@ class PrevInfo:
         self.prev_df = pd.read_sql("""
             with bozo as
             (
-            Select username, max(auctiontime) as max_auctiontime from auction_full WHERE auctiontime <= '2020-01-16 22:53:19' group by username 
+            Select username, max(auctiontime) as max_auctiontime from auction_full group by username 
             )
             select bozo.username,  prev_auction_count0, prev_overbid0, prev_giveup_one0, prev_give_before_six0, 
             prev_wins0, prev_bids0, prev_bom_bids0 from bozo left join auction_full on bozo.username=Username0 

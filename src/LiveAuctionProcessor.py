@@ -16,6 +16,7 @@ class LiveAuctionProcessor:
         db = myclient["penny"]
         self.sniffed_collection = db["sniffed_auctions"]
         self.tracking_collection = db["tracking"]
+        self.validation_collection = db["validation"]
         self.bh = []
         self.prev_user_info = prev_user_info
         self.my_username = "AAAAAAHH"
@@ -166,13 +167,23 @@ class LiveAuctionProcessor:
         potential_loss = -.40
         bom_ev = potential_profit * bom_proba + potential_loss * (1-bom_proba)
         manual_ev = potential_profit * manual_proba + potential_loss * (1-manual_proba)
-        filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
-        if not os.path.exists(filename):
-            df_out.to_csv(filename)
-            print("Here", manual_proba, bom_proba, manual_ev, bom_ev)
-            f=open(filename, "a+")
-            f.write(f"{manual_proba}, {bom_proba}, {manual_ev}, {bom_ev}")
-            f.close()
+        
+        if (last_user == self.my_username):
+            self.validation_collection.insert_one(self.prev_auction_dict)
+            #filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
+            #if not os.path.exists(filename):
+                #df_out.to_csv(filename)
+                #print("Here", manual_proba, bom_proba, manual_ev, bom_ev)
+                #f=open(filename, "a+")
+                #f.write(f"{manual_proba}, {bom_proba}, {manual_ev}, {bom_ev}")
+                #f.close()
+            
+        self.auction_dict["potential_profit"] = potential_profit
+        self.auction_dict["bom_proba"] = bom_proba
+        self.auction_dict["manual_proba"] = manual_proba
+        self.auction_dict["bom_ev"] = bom_ev
+        self.auction_dict["manual_ev"] = manual_ev
+
         self.out_dict["potential_profit"] = potential_profit
         self.out_dict["bom_proba"] = bom_proba
         self.out_dict["manual_proba"] = manual_proba
@@ -191,6 +202,7 @@ class LiveAuctionProcessor:
             self.tracking_collection.delete_many({"_id":self.auction_id})
             return None
         if (prev_len != len(self.bh) or len(self.bh)==0):
+            self.prev_auction_dict = auction_dict.copy()
             self.process()
             self.calculate_ev()
         return self.out_dict

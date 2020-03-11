@@ -89,7 +89,7 @@ class Upcoming:
 
     def get_upcoming_auctions(self):
         self.upcoming_auctions =  self.mp.parse_upcoming_auction_page(self.bts.scrape_upcoming_auctions())
-        self.upcoming_auctions = [ua for ua in self.upcoming_auctions if ua["auctionid"] not in self.launched_auction_ids and (ua["cardtype"]=="None" or ua["cardvalue"]>=25)] 
+        self.upcoming_auctions = [ua for ua in self.upcoming_auctions if ua["auctionid"] not in self.launched_auction_ids and (ua["cardtype"]=="None" or ua["cardtype"] == "Buster" or ua["cardvalue"]>=25)] 
         self.upcoming_collection.update_one ({"_id": "upcoming"}, {"$set": {"auctions": self.upcoming_auctions}})
         #print(self.upcoming_auctions[0])
  
@@ -181,7 +181,7 @@ class Upcoming:
 
  
 if __name__ == "__main__": 
-    upcoming = Upcoming(True)
+    upcoming = Upcoming(False)
     upcoming.run()
 
     

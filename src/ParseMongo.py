@@ -38,18 +38,22 @@ class MongoParser:
         cash_value = auction_title.split("(")[1]
         cash_value = cash_value.split(")")[0][1:]
         if has_bids and has_gift_card:
+            #print("case1")
             card_type, bid_value = auction_title.split (" Gift Card AND", 1)
             bid_value = bid_value.split(" Bids")[0][1:]
             card_value = card_value[1:]
         elif has_gift_card and not has_bids:
+            #print("case2")
             card_type = auction_title.split (" Gift Card")[0]
             card_value = card_value[1:]
             bid_value = str(int((float(cash_value) - int(card_value))*2.5))
         elif has_bids and not has_gift_card and is_vouchers:
+            #print("case3")
             card_type = "None"
             bid_value = card_value
             card_value = "0"
         elif is_limit_buster:
+            #print("case4")
             card_type = "Buster"
             if "Two" in auction_title:
                 card_value = "30"
@@ -58,7 +62,7 @@ class MongoParser:
             elif "Four" in auction_title:
                 card_value = "60"
             else:
-                #print("What is this?")
+                print("What is this?")
                 return None, None, None, None
  
             bid_value = str(int((float(cash_value) - int(card_value))*2.5))
@@ -85,12 +89,15 @@ class MongoParser:
             tds = tr.find_all("td")
             auction_id = tds[1].find("a").text
             description = tds[2].text
+            #print(description)
             limited_allowed = description[0].startswith('L')
             if (limited_allowed):
                 description=description[1:]
             cash_value, card_value, card_type, bid_value = self.parse_auction_title(description)
+            #print(cash_value, card_value, card_type, bid_value )
             if (cash_value):
                 time_str = tds[3].text
+                #print(time_str)
                 if time_str.startswith("00"):
                     t = time.strptime(tds[3].text, "%H:%M:%S")
                     #print(t.tm_min*60+t.tm_sec)
@@ -106,7 +113,8 @@ class MongoParser:
                     "limited_allowed": limited_allowed,
                     "seconds_left": t.tm_min*60+t.tm_sec
                 }
-                upcoming_auctions.append(auction_dict)  
+                upcoming_auctions.append(auction_dict)
+        #print(upcoming_auctions)
         return upcoming_auctions        
 
     def parse_auction_page(self, qauction_id, html, auction_dict):

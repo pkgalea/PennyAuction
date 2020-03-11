@@ -60,7 +60,7 @@ class Upcoming:
 
     def process_auction(self, auction_dict, auction_driver):
         """
-            Takes the upcoming auction and launches a Live Auction Processror class.   Also closes the web page once it's done.
+            Takes the upcoming auction and launches a Live Auction Processor class.   Also closes the web page once it's done.
             Parameters:
                 auction_dict (dict): dictionary of auction info 
                 handle (str): the selenium handle for the window 
@@ -181,7 +181,7 @@ class Upcoming:
 
  
 if __name__ == "__main__": 
-    upcoming = Upcoming(False)
+    upcoming = Upcoming(True)
     upcoming.run()
 
     

@@ -202,7 +202,7 @@ class LiveAuctionProcessor:
             self.tracking_collection.delete_many({"_id":self.auction_id})
             return None
         if (prev_len != len(self.bh) or len(self.bh)==0):
-            self.prev_auction_dict = auction_dict.copy()
+            self.prev_auction_dict = self.auction_dict.copy()
             self.process()
             self.calculate_ev()
         return self.out_dict

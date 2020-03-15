@@ -100,6 +100,7 @@ class Upcoming:
         self.launched_auction_ids.append(auction["auctionid"])
         print("OPENING" + auction["auctionid"])
         elems = self.driver.find_elements_by_id(auction["auctionid"])
+        auction_driver = None
         for element in elems:
             link = element.find_elements_by_tag_name('a')[0]
             href = link.get_attribute('href')
@@ -107,8 +108,12 @@ class Upcoming:
             auction_driver.get(href)
             time.sleep(2)
             break
-        t1 = threading.Thread(target=self.process_auction, args=(auction,auction_driver,))
-        t1.start() 
+        if auction_driver:
+            print("OPENING" + auction["auctionid"])
+            t1 = threading.Thread(target=self.process_auction, args=(auction,auction_driver,))
+            t1.start()
+        else:
+            print ("FAIL TO START" + auction["auctionid"])
 
 
     def check_for_new_auctions(self):

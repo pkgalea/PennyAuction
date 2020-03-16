@@ -90,7 +90,10 @@ class Upcoming:
     def get_upcoming_auctions(self):
         self.upcoming_auctions =  self.mp.parse_upcoming_auction_page(self.bts.scrape_upcoming_auctions())
         self.upcoming_auctions = [ua for ua in self.upcoming_auctions if ua["auctionid"] not in self.launched_auction_ids and (ua["cardtype"]=="None" or ua["cardtype"] == "Buster" or ua["cardvalue"]>=25)] 
-        self.upcoming_collection.update_one ({"_id": "upcoming"}, {"$set": {"auctions": self.upcoming_auctions}})
+        if self.upcoming_collection.find({"_id": "upcoming"}).count() == 0:
+            self.upcoming_auctions.insert({"_id": "upcoming"}, {"$set": {"auctions": self.upcoming_auctions}})
+        else:
+            self.upcoming_collection.update_one ({"_id": "upcoming"}, {"$set": {"auctions": self.upcoming_auctions}})
         #print(self.upcoming_auctions[0])
  
     def launch_auction(self, auction):
@@ -98,7 +101,6 @@ class Upcoming:
         auction["fee"] = 0 if auction["cardvalue"] == 0 else (1 if auction["cardvalue"] < 50 else 1.99)
         self.upcoming_auctions.pop()
         self.launched_auction_ids.append(auction["auctionid"])
-        print("OPENING" + auction["auctionid"])
         elems = self.driver.find_elements_by_id(auction["auctionid"])
         auction_driver = None
         for element in elems:
@@ -186,7 +188,7 @@ class Upcoming:
 
  
 if __name__ == "__main__": 
-    upcoming = Upcoming(True)
+    upcoming = Upcoming(False)
     upcoming.run()
 
     

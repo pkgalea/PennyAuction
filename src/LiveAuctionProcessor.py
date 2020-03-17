@@ -21,9 +21,10 @@ class LiveAuctionProcessor:
         self.prev_user_info = prev_user_info
         self.my_username = "AAAAAAHH"
         self.penny_model = penny_model
-        self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"], "sl": auction_dict["sl"]}
+        self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"]}
         self.tracking_collection.insert_one({"_id": self.auction_id, "data": self.out_dict})
         self.sold = False
+        self.sl = None
         self.columns = ['auctionid', 'is_winner', 'cardtype', 'cashvalue', 'cardvalue', 'fee',
        'bidvalue', 'limited_allowed', 'is_locked', 'auctiontime', 'bid',
        'is_bidomatic', 'bids_so_far', 'username', 'prevusers', 'giveup',
@@ -142,6 +143,7 @@ class LiveAuctionProcessor:
                 my_last_bid = len(self.bh)
                 new_bh = u["bh"]
                 newest_bid = new_bh[0]["bid"]
+                self.sl = u["sl"]
                 bids_to_get = newest_bid - my_last_bid
                 for a in new_bh[bids_to_get-1::-1]:
                     self.bh.append({"bid":a["bid"], "username":a["username"], "is_bidomatic": a["is_bidomatic"]})
@@ -191,7 +193,7 @@ class LiveAuctionProcessor:
         self.out_dict["bid"] = bid-1
         self.out_dict["last_user"]= last_user
         self.out_dict["tracking_OK"] = len(self.bh)== 0 or self.bh[-1]["bid"] == len(self.bh)
-            
+        self.out_dict["sl"]=self.sl   
         self.tracking_collection.update_one({"_id":self.auction_id}, {"$set": {"data": self.out_dict}})
 
 

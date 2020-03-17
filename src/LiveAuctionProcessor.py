@@ -21,7 +21,7 @@ class LiveAuctionProcessor:
         self.prev_user_info = prev_user_info
         self.my_username = "AAAAAAHH"
         self.penny_model = penny_model
-        self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"]}
+        self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"], "sl": auction_dict["sl"]}
         self.tracking_collection.insert_one({"_id": self.auction_id, "data": self.out_dict})
         self.sold = False
         self.columns = ['auctionid', 'is_winner', 'cardtype', 'cashvalue', 'cardvalue', 'fee',
@@ -183,7 +183,6 @@ class LiveAuctionProcessor:
         self.auction_dict["manual_proba"] = manual_proba
         self.auction_dict["bom_ev"] = bom_ev
         self.auction_dict["manual_ev"] = manual_ev
-
         self.out_dict["potential_profit"] = potential_profit
         self.out_dict["bom_proba"] = bom_proba
         self.out_dict["manual_proba"] = manual_proba

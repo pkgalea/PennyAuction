@@ -38,8 +38,7 @@ class QuiBidsSniffer():
                 auction_dict = {"auction_id":auction_id, "auction_complete": True}
                 self.sniffed_collection.insert_one(auction_dict) 
             else:
-                print(auction)
-                auction_dict = {"auction_id":auction_id, "bid":auction['bh'][0]["id"], "bh":[]}
+                auction_dict = {"auction_id":auction_id, "sl":auction['sl'], "bid":auction['bh'][0]["id"], "bh":[]}
                 for bh in auction['bh']:
                     bid = bh['id']
                     username = bh['u']

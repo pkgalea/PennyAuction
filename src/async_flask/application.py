@@ -65,7 +65,7 @@ def create_auction_table(a_data, auction_id):
         auction_str += " - OK"
     else:
         auction_str += "- <font color='red'>NOT FULLY TRACKING!</font>"
-
+    auction_str += str(a_data["sl"])
     auction_str += "</h4>"
 
     if (a_data["bom_ev"] <= 0):

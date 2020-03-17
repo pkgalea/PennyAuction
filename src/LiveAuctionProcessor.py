@@ -203,10 +203,11 @@ class LiveAuctionProcessor:
 
     def get_expected_value(self):
         prev_len = len(self.bh)
+        is_not_yet_live = self.is_live
         if not self.check_for_new_bids():
             self.tracking_collection.delete_many({"_id":self.auction_id})
             return None
-        if (prev_len != len(self.bh) or len(self.bh)==0):
+        if (prev_len != len(self.bh) or len(self.bh)==0 or is_not_yet_live <> self.is_live):
             self.prev_auction_dict = self.auction_dict.copy()
             self.process()
             self.calculate_ev()

@@ -57,7 +57,7 @@ def create_auction_table(a_data, auction_id):
     auction_str = "<table bgcolor='#555555' border=1><TR><TD bgcolor='#777777' colspan=7>"
 
     if (a_data["cardtype"] == "None"):
-        auction_str  += "<H4>" + auction_id + ": Bid Pack "  + str(a_data["bidvalue"]) + "</h4>"
+        auction_str  += "<H4>" + auction_id + ": Bid Pack "  + str(a_data["bidvalue"]) 
     else:
         auction_str  += "<H4>" + auction_id + ": " + a_data["cardtype"] + " $" + str(a_data["cardvalue"]) 
 

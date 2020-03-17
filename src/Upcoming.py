@@ -1,5 +1,5 @@
 import requests
-import PrevInfo
+from PrevInfo import PrevInfo
 import time
 from bs4 import BeautifulSoup
 import pymongo

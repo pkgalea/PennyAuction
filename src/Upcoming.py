@@ -120,9 +120,9 @@ class Upcoming:
 
 
     def check_for_new_auctions(self):
-       last_refresh = datetime.now()
+       last_refresh = time.time()
        while (True):
-            print (last_refresh - datetime.now())
+            print (time.time() -  last_refresh)
             self.get_upcoming_auctions()
             for auction   in self.upcoming_auctions:
                 if (auction["seconds_left"] < 350):

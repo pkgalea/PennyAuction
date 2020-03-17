@@ -6,7 +6,7 @@ import pymongo
 from backports import configparser
 import sys
 from ParseMongo import MongoParser
-from datetime import timedelta
+from datetime import timedelta, datetime
 from  BidTrackerScraper import BidTrackerScraper
 from selenium import webdriver
 from selenium.webdriver import ActionChains

@@ -55,15 +55,19 @@ def get_upcoming_string(upcoming):
 
 def create_auction_table(a_data, auction_id):
     auction_str = "<table bgcolor='#555555' border=1><TR><TD bgcolor='#777777' colspan=7>"
-    if a_data["tracking_OK"]:
-        tracking_str = "OK"
-    else:
-        tracking_str = "NOT FULLY TRACKING!"
 
     if (a_data["cardtype"] == "None"):
         auction_str  += "<H4>" + auction_id + ": Bid Pack "  + str(a_data["bidvalue"]) + "</h4>"
     else:
-        auction_str  += "<H4>" + auction_id + ": " + a_data["cardtype"] + " $" + str(a_data["cardvalue"]) + "-" + tracking_str + "</h4>"
+        auction_str  += "<H4>" + auction_id + ": " + a_data["cardtype"] + " $" + str(a_data["cardvalue"]) 
+
+    if a_data["tracking_OK"]:
+        auction_str += " - OK"
+    else:
+        auction_str += "- <font color='red'>NOT FULLY TRACKING!</font>"
+
+    auction_str += "</h4>"
+
     if (a_data["bom_ev"] <= 0):
         bom_bgcolor = "red"
     else:

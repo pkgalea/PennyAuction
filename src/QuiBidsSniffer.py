@@ -48,7 +48,7 @@ class QuiBidsSniffer():
                     auction_dict["bh"].append({"bid": bid, "username":username, "is_bidomatic":is_bidomatic})  
                     print("*****************")
                 self.sniffed_collection.insert_one(auction_dict)  
-        elif ('sl' in auction_keys()):
+        elif ('sl' in auction.keys()):
             sl = auction["sl"]
             if (sl < 30 and sl > 12):
                 auction_dict = {"auction_id":auction_id, "auction_live": True}

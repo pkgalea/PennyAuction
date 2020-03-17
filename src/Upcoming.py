@@ -124,7 +124,7 @@ class Upcoming:
        while (True):
             print (last_refresh - datetime.now())
             self.get_upcoming_auctions()
-            for auction in self.upcoming_auctions:
+            for auction   in self.upcoming_auctions:
                 if (auction["seconds_left"] < 350):
                     self.launch_auction(auction)
             time.sleep(5)

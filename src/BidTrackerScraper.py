@@ -97,7 +97,7 @@ class BidTrackerScraper:
         r = self._session.get(url)
         split = r.text.split("auction_id=")
         auction_ids = [s.split('"')[0] for s in split[1:]]
-        time.sleep(4)
+        time.sleep(1)
         return auction_ids
 
     

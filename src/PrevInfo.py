@@ -62,4 +62,6 @@ class PrevInfo:
         """
         pickle.dump( self, open( filename, "wb" ) )
 
-
+if __name__ == "__main__":
+    pi = PrevInfo()
+    pi.pickle("pi.pkl")

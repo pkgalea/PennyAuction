@@ -54,7 +54,12 @@ def get_upcoming_string(upcoming):
     return upcoming_str
 
 def create_auction_table(a_data, auction_id):
-    auction_str = "<table bgcolor='#555555' border=1><TR><TD bgcolor='#777777' colspan=7>"
+    if (a_data["is_live"]):
+        tcolor = "#008800"
+    else:
+        tcolor = "#555555"
+
+    auction_str = "<table bgcolor='" + tcolor + "' border=1><TR><TD bgcolor='#777777' colspan=7>"
 
     if (a_data["cardtype"] == "None"):
         auction_str  += "<H4>" + auction_id + ": Bid Pack "  + str(a_data["bidvalue"]) 

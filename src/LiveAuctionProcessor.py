@@ -25,6 +25,7 @@ class LiveAuctionProcessor:
         self.tracking_collection.insert_one({"_id": self.auction_id, "data": self.out_dict})
         self.sold = False
         self.sl = None
+        self.is_live = False
         self.columns = ['auctionid', 'is_winner', 'cardtype', 'cashvalue', 'cardvalue', 'fee',
        'bidvalue', 'limited_allowed', 'is_locked', 'auctiontime', 'bid',
        'is_bidomatic', 'bids_so_far', 'username', 'prevusers', 'giveup',
@@ -139,6 +140,8 @@ class LiveAuctionProcessor:
         for u in self.sniffed_collection.find({"auction_id":self.auction_id}):
             if ("auction_complete" in u.keys()):
                 return False
+            if ("auction_live" in u.keys()):
+                self.is_live = True
             else:
                 my_last_bid = len(self.bh)
                 new_bh = u["bh"]
@@ -194,6 +197,7 @@ class LiveAuctionProcessor:
         self.out_dict["last_user"]= last_user
         self.out_dict["tracking_OK"] = len(self.bh)== 0 or self.bh[-1]["bid"] == len(self.bh)
         self.out_dict["sl"]=self.sl   
+        self.out_dict["is_live"]=self.is_live
         self.tracking_collection.update_one({"_id":self.auction_id}, {"$set": {"data": self.out_dict}})
 
 

@@ -150,6 +150,9 @@ class LiveAuctionProcessor:
                 bids_to_get = newest_bid - my_last_bid
                 for a in new_bh[bids_to_get-1::-1]:
                     self.bh.append({"bid":a["bid"], "username":a["username"], "is_bidomatic": a["is_bidomatic"]})
+                if len(self.bh)>0 0 and self.bh[-1]["bid"] != len(self.bh):
+                    print ("*****************NOT FULLY TRACKING**************")
+                    print (self.bh)
                 self.sniffed_collection.delete_one({"auction_id":self.auction_id, "bid":u["bid"]})
         return True
 

@@ -22,7 +22,7 @@ from colorama import Style
 from QuiBidsSniffer import QuiBidsSniffer
 
 
-# TODO: Make this a class!
+
 class Upcoming:
 
     def __init__(self, headless=True):
@@ -67,7 +67,12 @@ class Upcoming:
                 handle (str): the selenium handle for the window 
         """
         lap = LiveAuctionProcessor(auction_dict, self.prev_info, self.penny_model)
+        last_refresh = time.time()
         while True:
+            time_since_last_refresh = time.time() -  last_refresh
+            if (time > 1200):
+                last_refresh = time.time()
+                auction_driver.refresh()
             out_dict = lap.get_expected_value()
             auction_id = auction_dict["auctionid"]
            # print(out_dict)
@@ -122,7 +127,11 @@ class Upcoming:
     def check_for_new_auctions(self):
        last_refresh = time.time()
        while (True):
-            print (time.time() -  last_refresh)
+            time_since_last_refresh = time.time() -  last_refresh
+            if (time > 1200):
+                last_refresh = time.time()
+                self.driver.refresh()
+            
             self.get_upcoming_auctions()
             for auction   in self.upcoming_auctions:
                 if (auction["seconds_left"] < 350):

@@ -24,7 +24,7 @@ class LiveAuctionProcessor:
         self.out_dict = {"cardvalue": auction_dict["cardvalue"], "bidvalue": auction_dict["bidvalue"], "cardtype": auction_dict["cardtype"]}
         self.tracking_collection.insert_one({"_id": self.auction_id, "data": self.out_dict})
         self.sold = False
-        self.sl = None
+        self.sl = 350
         self.is_live = False
         self.columns = ['auctionid', 'is_winner', 'cardtype', 'cashvalue', 'cardvalue', 'fee',
        'bidvalue', 'limited_allowed', 'is_locked', 'auctiontime', 'bid',
@@ -52,7 +52,7 @@ class LiveAuctionProcessor:
     def add_auction_level_fields(self):
         self.auction_dict["idx"]=0
         self.auction_dict["is_winner"] = None
-        self.auction_dict["auctiontime"] = datetime.now()+ timedelta(hours=-4)
+        self.auction_dict["auctiontime"] = datetime.now()+ timedelta(hours=-4) + timedelta(seconds=self.sl)
         self.auction_dict["is_bidomatic"] = True
         self.auction_dict["bids_so_far"] = None
         self.auction_dict["username"] = self.my_username

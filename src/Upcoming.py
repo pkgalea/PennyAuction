@@ -70,7 +70,7 @@ class Upcoming:
         last_refresh = time.time()
         while True:
             time_since_last_refresh = time.time() -  last_refresh
-            if (time > 1200):
+            if (time_since_last_refresh > 1200):
                 last_refresh = time.time()
                 auction_driver.refresh()
             out_dict = lap.get_expected_value()
@@ -128,7 +128,7 @@ class Upcoming:
        last_refresh = time.time()
        while (True):
             time_since_last_refresh = time.time() -  last_refresh
-            if (time > 1200):
+            if (time_since_last_refresh > 1200):
                 last_refresh = time.time()
                 self.driver.refresh()
             

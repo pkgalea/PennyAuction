@@ -25,6 +25,10 @@ from random import random
 from time import sleep
 from threading import Thread, Event
 import pymongo
+import os
+
+
+
 
 __author__ = 'slynn'
 
@@ -54,8 +58,14 @@ def get_upcoming_string(upcoming):
     return upcoming_str
 
 def create_auction_table(a_data, auction_id):
+    seconds_left = a_data["sl"]
     if (a_data["is_live"]):
-        tcolor = "#008800"
+        if seconds_left <= 25:
+            tcolor = "#FFFF00"
+            beep = lambda x: os.system("echo -n '\a';sleep 0.2;" * x)
+            beep(3)
+        else:
+            tcolor = "#008800"
     else:
         tcolor = "#555555"
 

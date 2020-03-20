@@ -60,7 +60,7 @@ def get_upcoming_string(upcoming):
 def create_auction_table(a_data, auction_id):
     seconds_left = a_data["sl"]
     if (a_data["is_live"]):
-        if seconds_left <= 25:
+        if a_data["manual_ev"] >= 0 or a_data["bom_ev"] >= 0:
             tcolor = "#FFFF00"
             beep = lambda x: os.system("echo -n '\a';sleep 0.2;" * x)
             beep(3)

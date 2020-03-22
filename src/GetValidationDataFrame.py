@@ -13,8 +13,5 @@ print ("Connecting to SQL")
 conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
 
 print ("Reading Dataset")
-df = pd.read_sql ("""Select *  from auction_full where auctiontime > '2020-03-01' order by bid""", conn)
-
-penny_model = pickle.load( open( "rf.pkl", "rb" ) )
-my_df = df[df.username=='AAAAAAHH']
-my_df.to_csv("validation.csv")
+df = pd.read_sql ("""Select *  from auction_full where auctiontime > '2020-03-01' and username='AAAAAAHH' order by bid""", conn)
+df.to_csv("validation.csv")

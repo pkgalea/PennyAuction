@@ -193,7 +193,7 @@ class Upcoming:
         print("Going to Quibids")
         self.driver = self.launch_driver()
         self.driver.get("http://quibids.com/en/")
-        print(self.driver.page_source[:300])
+        print([x[:100] for x in self.driver.page_source.split("quibids")])
         #self.driver.get("http://www.google.com")
         t1 = threading.Thread(target=self.check_for_new_auctions)
         t1.start()

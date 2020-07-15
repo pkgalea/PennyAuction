@@ -96,7 +96,7 @@ class Upcoming:
     def get_upcoming_auctions(self):
         self.upcoming_auctions =  self.mp.parse_upcoming_auction_page(self.bts.scrape_upcoming_auctions())
         self.upcoming_auctions = [ua for ua in self.upcoming_auctions if ua["auctionid"] not in self.launched_auction_ids and (ua["cardtype"]=="None" or ua["cardtype"] == "Buster" or ua["cardvalue"]>=25)] 
-        if self.upcoming_collection.find({"_id": "upcoming"}).count_documents() == 0:
+        if self.upcoming_collection.count_documents({"_id": "upcoming"}) == 0:
             self.upcoming_collection.insert_one ({"_id": "upcoming", "auctions": self.upcoming_auctions})
         else:
             self.upcoming_collection.update_one ({"_id": "upcoming"}, {"$set": {"auctions": self.upcoming_auctions}})

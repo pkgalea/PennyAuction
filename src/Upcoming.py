@@ -185,17 +185,17 @@ class Upcoming:
         self.qbs.capture_auction()
 
     def run(self):
-	print("Logging in to BTS")
+	    print("Logging in to BTS")
         self.bts.login(2)
-	print("Connecting to Mongo")
+	    print("Connecting to Mongo")
         self.connect_to_mongo()
 #        self.load_pickles()
-	print("Going to Quibids")
+	    print("Going to Quibids")
         self.driver = self.launch_driver()
         self.driver.get("http://quibids.com/en/")
         t1 = threading.Thread(target=self.check_for_new_auctions)
         t1.start()
-	print ("Starting Threading")
+	    print ("Starting Threading")
        # t2 = threading.Thread(target=self.start_sniffer)
        # t2.start()
         while True:

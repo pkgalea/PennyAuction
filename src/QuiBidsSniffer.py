@@ -69,7 +69,7 @@ class QuiBidsSniffer():
         db = myclient["penny"]
         self.sniffed_collection = db["sniffed_auctions"]
         self.sniffed_collection.delete_many({})
-        capture = pyshark.LiveCapture(interface='ens5', bpf_filter="host 35.153.120.167 or host 52.203.74.230")
+        capture = pyshark.LiveCapture(interface='eth0', bpf_filter="host 35.153.120.167 or host 52.203.74.230")
 
         capture.set_debug()
         capture.sniff(timeout=10)

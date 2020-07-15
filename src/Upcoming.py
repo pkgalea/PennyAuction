@@ -44,7 +44,7 @@ class Upcoming:
     def launch_driver(self):
         options = Options()
         options.headless = self.headless
-        driver = webdriver.Firefox(options=options, executable_path=r'/bin/geckodriver')
+        driver = webdriver.Firefox(options=options)
         return driver
 
 

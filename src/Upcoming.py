@@ -192,7 +192,7 @@ class Upcoming:
         self.load_pickles()
         print("Going to Quibids")
         self.driver = self.launch_driver()
-        self.driver.get("http://www.cnn.com")
+        self.driver.get("http://quibids.com/en/")
         print([x[:100] for x in self.driver.page_source.split("quibids")])
         #self.driver.get("http://www.google.com")
         t1 = threading.Thread(target=self.check_for_new_auctions)

@@ -1,2 +1,0 @@
-scp -i ~/.ssh/my_first_key.pem ubuntu@ec2-3-19-188-35.us-east-2.compute.amazonaws.com:/home/ubuntu/PennyAuction/src/rf.pkl rf.pkl
-scp -i ~/.ssh/my_first_key.pem ubuntu@ec2-3-19-188-35.us-east-2.compute.amazonaws.com:/home/ubuntu/PennyAuction/src/pi.pkl pi.pkl

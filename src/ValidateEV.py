@@ -1,27 +1,16 @@
 
-import psycopg2 as pg2
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import auc, confusion_matrix, precision_score, recall_score, accuracy_score, roc_curve
 import numpy as np
 import pickle
 from datetime import datetime, date, timedelta
 import importlib
 import pymongo
 
-print ("Connecting to SQL")
-conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
 
-print ("Reading Dataset")
-true_df = pd.read_sql ("""Select *  from auction_full where auctiontime >= '2020-03-01' and auctionid in (select distinct auctionid from auction_full where is_bidomatic)""", conn)
 
 print ("Loading Model")
 penny_model = pickle.load( open( "rf.pkl", "rb" ) )
 
-my_df = true_df[true_df.username=='AAAAAAHH']
-my_df.shape
-my_winners = my_df[my_df.is_winner]
-np.sum(my_winners.cashvalue - my_winners.fee- my_winners.bid/100) - my_df.shape[0]*.4
 
 evs = []
 aps = []

@@ -13,5 +13,5 @@ print ("Connecting to SQL")
 conn = pg2.connect(user='postgres',  dbname='penny', host='localhost', port='5432', password='password')
 
 print ("Reading Dataset")
-df = pd.read_sql ("""Select *  from auction_full where auctiontime > '2020-03-01' and username='AAAAAAHH' order by bid""", conn)
+df = pd.read_sql ("""Select *  from auction_full where auctiontime >= '2020-03-01' and auctionid in (select distinct auctionid from auction_full where is_bidomatic) and username='AAAAAAHH' order by bid""", conn)
 df.to_csv("validation.csv")

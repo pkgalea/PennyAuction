@@ -3,7 +3,6 @@ import psycopg2 as pg2
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, confusion_matrix, precision_score, recall_score, accuracy_score, roc_curve
-import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 from datetime import datetime, date, timedelta

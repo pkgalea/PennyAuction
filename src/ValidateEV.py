@@ -12,6 +12,7 @@ print ("Loading Model")
 penny_model = pickle.load( open( "rf.pkl", "rb" ) )
 
 df = pd.read_csv("validation.csv")
+df["auctiontime"] =  pd.to_datetime(df['auctiontime'], format='%Y-%m-%d %H:%M:%S')
 
 evs = []
 aps = []

@@ -7,9 +7,18 @@ import numpy as np
 import json
 import os
 
+'''
+P
+'''
 class LiveAuctionProcessor:
 
     def __init__(self, auction_dict, prev_user_info, penny_model):
+        ''' 
+        Initializes the processer.
+
+        This class keeps track pulls the bids from the mongo db for the given auction, retains the bid history, puts the data into 
+        a format the model can understand, and puts the info to be displayed in the flask app into another mongodb (probability/expected value)
+        '''
         self.auction_dict = auction_dict
         self.auction_id = auction_dict["auctionid"]
         myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -50,6 +59,12 @@ class LiveAuctionProcessor:
 
 
     def add_auction_level_fields(self):
+        ''' 
+        Builds up the auction dictionary with the auction-level fields.  Time is adjusted for where the ec2 instance lives.
+
+        parameters: None
+        Returns: None
+        '''
         self.auction_dict["idx"]=0
         self.auction_dict["is_winner"] = None
         self.auction_dict["auctiontime"] = datetime.now()+ timedelta(hours=-4) + timedelta(seconds=self.sl)
@@ -65,7 +80,14 @@ class LiveAuctionProcessor:
         self.auction_dict["perc_to_bin"] = None
         self.auction_dict["is_locked"] = False
 
+    
     def process_bid_history(self):
+        '''
+        Puts the bid history into parameters expected by the model.
+        
+        Parameters: None
+        Returns: user_dict(Dict): Dictionary for each user in the auction, how many bids they have done, how far away they are from the current bid, etc.
+        '''
         bid = len(self.bh)+1
         self.auction_dict["bid"] = bid
         user_dict = {}
@@ -92,6 +114,13 @@ class LiveAuctionProcessor:
         return user_dict
 
     def get_prev_user_info(self, user_dict, user_dict_len, prev_cols):   
+        '''
+        Fills in user's previous info from the prev info PSQL database.
+        Parameters: user_dict_len(int): The number of users
+                    user_cols(list): The list of the columns
+                    prev_cols(list): The list of each users previous info
+        Returns: None
+        '''
         for i in range(user_dict_len):
             str_i = str(i)
             ud = user_dict[i]
@@ -112,6 +141,14 @@ class LiveAuctionProcessor:
 
 
     def fill_in_info_if_less_than_4_users (self, user_dict_len, user_cols, prev_cols):
+        '''
+        Fills in dummy info if less than 4 bidders.  The machine learning model expects None and Nans in this case
+
+        Parameters: user_dict_len(int): The number of users
+                    user_cols(list): The list of the columns
+                    prev_cols(list): The list of each users previous info
+        Returns: None
+        '''
         for i in range (user_dict_len,4):
             for c in prev_cols + user_cols:
                 self.auction_dict[c+str(i)] = np.nan
@@ -121,6 +158,12 @@ class LiveAuctionProcessor:
        
 
     def process(self):
+        '''
+        transforms the current raw info from the scaper into a form the machine learning model can understand.
+
+        Parameters: None
+        Returns: dictionary of feature:[value] which is the form the model expects
+        '''
         user_cols = ["username", "bids_so_far", "bom_bids_so_far", "distance", "is_bidomatic", "bom_streak"]
         prev_cols = ['prev_auction_count', 'prev_overbid', 'prev_giveup_one', 'prev_give_before_six', 'prev_wins', 'prev_bids', 'prev_bom_bids']
         self.add_auction_level_fields()
@@ -134,8 +177,13 @@ class LiveAuctionProcessor:
         return {k:[v] for k, v in self.auction_dict.items()} 
 
 
-
     def check_for_new_bids(self):
+        '''
+        Looks to see if there have been any new bids by quering the mongoDB filled in by the sniffer.
+        
+        Parameters:None
+        Returns: True if there are new bids
+        '''
         #print (self.auction_id)
         for u in self.sniffed_collection.find({"auction_id":self.auction_id}):
             if ("auction_complete" in u.keys()):
@@ -159,6 +207,13 @@ class LiveAuctionProcessor:
 
 
     def calculate_ev(self):
+        ''' 
+            Gets probability of auction ending from the model.
+            Creates dictionary of info to display on the tracker, including expected value.
+            
+            Parameters: None
+            Returns: Dictionary of the data to display on the tracker
+        '''
         df_out = pd.DataFrame.from_dict({k:[v] for k, v in self.auction_dict.items()})
         df_out = df_out[self.columns]
         df_out["is_bidomatic"]=True
@@ -179,14 +234,7 @@ class LiveAuctionProcessor:
         
         if (last_user == self.my_username):
             self.validation_collection.insert_one(self.prev_auction_dict)
-            #filename = "../tracking/" + self.auction_dict["auctionid"] + "_" + str(bid)
-            #if not os.path.exists(filename):
-                #df_out.to_csv(filename)
-                #print("Here", manual_proba, bom_proba, manual_ev, bom_ev)
-                #f=open(filename, "a+")
-                #f.write(f"{manual_proba}, {bom_proba}, {manual_ev}, {bom_ev}")
-                #f.close()
-            
+           
         self.auction_dict["potential_profit"] = potential_profit
         self.auction_dict["bom_proba"] = bom_proba
         self.auction_dict["manual_proba"] = manual_proba
@@ -206,6 +254,12 @@ class LiveAuctionProcessor:
 
 
     def get_expected_value(self):
+        '''
+        Returns the expected value of this auction at this point.  Removes old records from the mongodb tracking database.
+
+        Parameters: None
+        Returns: Dictionary of the data to display on the tracker
+        '''
         prev_len = len(self.bh)
         is_not_yet_live = self.is_live
         if not self.check_for_new_bids():

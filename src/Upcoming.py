@@ -115,11 +115,16 @@ class Upcoming:
             auction_driver = self.launch_driver()
             auction_driver.get(href)
             time.sleep(2)
+
             break
         if auction_driver:
-            print("OPENING" + auction["auctionid"])
-            t1 = threading.Thread(target=self.process_auction, args=(auction,auction_driver,))
-            t1.start()
+            if "Bid From" in auction_driver.page_source:
+                print("OPENING" + auction["auctionid"])
+                t1 = threading.Thread(target=self.process_auction, args=(auction,auction_driver,))
+                t1.start()
+            else:
+                print("SKIPPING" + auction["auctionid"] + "No bid-o-matic")
+                auction_driver.close()
         else:
             print ("FAIL TO START" + auction["auctionid"])
 

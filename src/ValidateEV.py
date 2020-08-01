@@ -11,6 +11,7 @@ import pymongo
 print ("Loading Model")
 penny_model = pickle.load( open( "rf.pkl", "rb" ) )
 
+df = pd.read_csv("validation.csv")
 
 evs = []
 aps = []

@@ -90,9 +90,9 @@ def create_auction_table(a_data, auction_id):
     else:
         manual_bgcolor = "green"
     auction_str += "</td></tr>"
-    auction_str += "<tr><td>Current Bid</td><td>Current Winner</td><td>Profit if win</td><td>Prob. of Win (manual)</td><td>Expected Value (manual)</td><td>Prob. of Win (bidomatic)</td><td>Expected Value (bidomatic)</td></tr>"
-    auction_str += "<tr><td align='center'>{:}</td><td align='center'>{:}</td><td align='center'>${:.2f}</td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td>".format(str(a_data["bid"]), a_data["last_user"],
-                                    a_data["potential_profit"],a_data["manual_proba"], manual_bgcolor, a_data["manual_ev"], a_data["bom_proba"], bom_bgcolor, a_data["bom_ev"])
+    auction_str += "<tr><td>Current Bid</td><td>Current Winner</td><td>Profit if win</td><td>Prob. of Win</td><td>Exp. Val</td></tr>"
+    auction_str += "<tr><td align='center'>{:}</td><td align='center'>{:}</td><td align='center'>${:.2f}</td><td align='center'>{:.4f}</td><td align='center' bgcolor = '{:}'><b><font size=+2>${:.2f}</font></b></td>".format(str(a_data["bid"]), a_data["last_user"],
+                                    a_data["potential_profit"], a_data["bom_proba"], bom_bgcolor, a_data["bom_ev"])
     auction_str += "</table><br>"
     return auction_str
 
